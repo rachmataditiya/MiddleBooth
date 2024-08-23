@@ -1,8 +1,10 @@
 ﻿using MiddleBooth.Services.Interfaces;
 using MiddleBooth.Utilities;
+using System;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.Threading.Tasks;
 
 namespace MiddleBooth.ViewModels
 {
@@ -26,6 +28,36 @@ namespace MiddleBooth.ViewModels
             get => _paymentStatus;
             set => SetProperty(ref _paymentStatus, value);
         }
+        private string _paymentStatusColor = "Gray";
+        public string PaymentStatusColor
+        {
+            get => _paymentStatusColor;
+            set => SetProperty(ref _paymentStatusColor, value);
+        }
+
+        private void UpdatePaymentStatus(string status)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                switch (status.ToLower())
+                {
+                    case "settlement":
+                        PaymentStatus = "Pembayaran Berhasil!";
+                        PaymentStatusColor = "Green";
+                        break;
+                    case "deny":
+                    case "cancel":
+                    case "expire":
+                        PaymentStatus = "Pembayaran Gagal!";
+                        PaymentStatusColor = "Red";
+                        break;
+                    default:
+                        PaymentStatus = $"Menunggu pembayaran...";
+                        PaymentStatusColor = "Orange";
+                        break;
+                }
+            });
+        }
 
         public QrisPaymentPageViewModel(INavigationService navigationService, IPaymentService paymentService)
         {
@@ -34,32 +66,33 @@ namespace MiddleBooth.ViewModels
 
             BackCommand = new RelayCommand(_ => _navigationService.NavigateTo("MainView"));
 
-            // Mendaftarkan event untuk menerima notifikasi pembayaran
             _paymentService.OnPaymentNotificationReceived += HandlePaymentNotification;
 
-            // Mulai proses pembayaran QRIS
-            Task.Run(async () => await StartQrisPayment());
+            Task.Run(StartQrisPayment);
         }
 
         private async Task StartQrisPayment()
         {
             try
             {
-                // Ambil harga dari pengaturan dan buat QR code
                 decimal amount = _paymentService.GetServicePrice();
                 string qrCodeUrl = await _paymentService.GenerateQRCode(amount);
 
-                // Gunakan Dispatcher untuk memastikan operasi UI dijalankan di thread utama
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    // Konversi URL QR code menjadi gambar untuk ditampilkan
-                    QrCodeImageSource = new BitmapImage(new Uri(qrCodeUrl));
-                    PaymentStatus = "Menunggu pembayaran...";
+                    if (!string.IsNullOrWhiteSpace(qrCodeUrl))
+                    {
+                        QrCodeImageSource = new BitmapImage(new Uri(qrCodeUrl));
+                        PaymentStatus = "Menunggu pembayaran...";
+                    }
+                    else
+                    {
+                        PaymentStatus = "Gagal menghasilkan QR code. Silakan coba lagi.";
+                    }
                 });
             }
             catch (Exception ex)
             {
-                // Gunakan Dispatcher untuk menampilkan pesan error di UI
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     PaymentStatus = $"Error: {ex.Message}";
@@ -67,23 +100,21 @@ namespace MiddleBooth.ViewModels
             }
         }
 
-
         private void HandlePaymentNotification(string status)
         {
-            // Perbarui status pembayaran berdasarkan notifikasi yang diterima
-            if (status == "settlement")
+            Application.Current.Dispatcher.Invoke(() =>
             {
-                PaymentStatus = "Pembayaran Berhasil!";
-            }
-            else if (status == "deny" || status == "cancel" || status == "expire")
-            {
-                PaymentStatus = "Pembayaran Gagal!";
-            }
+                PaymentStatus = status switch
+                {
+                    "settlement" => "Pembayaran Berhasil!",
+                    "deny" or "cancel" or "expire" => "Pembayaran Gagal!",
+                    _ => $"Status pembayaran: {status}"
+                };
+            });
         }
 
         ~QrisPaymentPageViewModel()
         {
-            // Unsubscribe event ketika ViewModel dihapus untuk menghindari memory leaks
             _paymentService.OnPaymentNotificationReceived -= HandlePaymentNotification;
         }
     }

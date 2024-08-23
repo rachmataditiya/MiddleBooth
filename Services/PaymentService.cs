@@ -57,7 +57,7 @@ namespace MiddleBooth.Services
 
             var request = new
             {
-                payment_type = "qris",
+                payment_type = "gopay",
                 transaction_details = new
                 {
                     order_id = orderId,
@@ -85,34 +85,23 @@ namespace MiddleBooth.Services
                     if (result == null || string.IsNullOrEmpty(result.StatusCode) || result.StatusCode != "201")
                     {
                         Log.Error("Invalid response from Midtrans: {Content}", content);
-                        _navigationService.NavigateTo("PaymentOptionsPage");
-                        _isRequestInProgress = false;
                         return string.Empty;
                     }
 
                     var qrCodeUrl = result.Actions.FirstOrDefault(a => a.Name == "generate-qr-code")?.Url ?? string.Empty;
                     Log.Information("QR code generated successfully: {QRCodeUrl}", qrCodeUrl);
-                    _isRequestInProgress = false;
                     return qrCodeUrl;
                 }
                 else
                 {
                     Log.Error("Failed to generate QR code. Status code: {StatusCode}, Reason: {ReasonPhrase}, Response: {Content}",
                               response.StatusCode, response.ReasonPhrase, content);
-
-                    var errorResponse = JsonSerializer.Deserialize<MidtransErrorResponse>(content);
-                    Log.Error("Midtrans error: {StatusCode} - {StatusMessage} (ID: {Id})", errorResponse?.StatusCode, errorResponse?.StatusMessage, errorResponse?.Id);
-
-                    _navigationService.NavigateTo("PaymentOptionsPage");
-                    _isRequestInProgress = false;
                     return string.Empty;
                 }
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Exception occurred while generating QR code");
-                _navigationService.NavigateTo("PaymentOptionsPage");
-                _isRequestInProgress = false;
                 return string.Empty;
             }
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows;
 using MiddleBooth.Services.Interfaces;
 
 namespace MiddleBooth.Services
@@ -10,12 +11,18 @@ namespace MiddleBooth.Services
 
         public void NavigateTo(string viewName)
         {
-            NavigationRequested?.Invoke(this, viewName);
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                NavigationRequested?.Invoke(this, viewName);
+            });
         }
 
         public void NavigateToOverlay(object overlayView)
         {
-            OverlayRequested?.Invoke(this, overlayView);
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                OverlayRequested?.Invoke(this, overlayView);
+            });
         }
     }
 }

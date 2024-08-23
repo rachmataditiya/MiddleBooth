@@ -26,6 +26,12 @@
             get => _validationResult;
             set => SetProperty(ref _validationResult, value);
         }
+        private string _validationResultColor = "Gray";
+        public string ValidationResultColor
+        {
+            get => _validationResultColor;
+            set => SetProperty(ref _validationResultColor, value);
+        }
 
         public VoucherPaymentPageViewModel(INavigationService navigationService, IPaymentService paymentService)
         {
@@ -41,11 +47,13 @@
             // Simulasi validasi dengan kode voucher sementara "1234"
             if (VoucherCode == "1234")
             {
-                ValidationResult = "Voucher Validated!";
+                ValidationResult = "Voucher Valid!";
+                ValidationResultColor = "Green";
             }
             else
             {
-                ValidationResult = "Invalid Voucher Code!";
+                ValidationResult = "Kode Voucher Tidak Valid!";
+                ValidationResultColor = "Red";
             }
 
             await Task.Delay(500); // Simulasi penundaan (misalnya, menunggu respons server)
