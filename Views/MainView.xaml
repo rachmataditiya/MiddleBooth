@@ -1,0 +1,99 @@
+﻿<UserControl x:Class="MiddleBooth.Views.MainView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:MiddleBooth.ViewModels"
+             xmlns:views="clr-namespace:MiddleBooth.Views"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
+
+    <UserControl.Resources>
+        <!-- Large Button Style -->
+        <Style x:Key="LargeButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="200"/>
+            <Setter Property="Height" Value="80"/>
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" CornerRadius="10" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="LightGray"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="White">
+        <!-- Main content -->
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Top Bar -->
+            <Grid Grid.Row="0" Background="LightGray">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Settings Button -->
+                <Button Command="{Binding OpenSettingsCommand}" 
+                        Style="{StaticResource LargeButtonStyle}"
+                        Background="PaleVioletRed"
+                        Grid.Column="0">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Settings" Width="30" Height="30" Margin="0,0,10,0"/>
+                        <TextBlock Text="Settings" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Exit Button -->
+                <Button Command="{Binding ExitCommand}" 
+                        Style="{StaticResource LargeButtonStyle}"
+                        Background="Tomato"
+                        Grid.Column="2">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="ExitToApp" Width="30" Height="30" Margin="0,0,10,0"/>
+                        <TextBlock Text="Exit" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <!-- Main Content (Continue Button) -->
+            <Grid Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Button Content="Continue" 
+                        Command="{Binding ContinueCommand}" 
+                        Style="{StaticResource LargeButtonStyle}"
+                        Background="MediumSeaGreen"
+                        Width="300"
+                        Height="120"
+                        FontSize="36"/>
+            </Grid>
+        </Grid>
+
+        <!-- Keypad Overlay -->
+        <Grid Visibility="{Binding IsKeypadVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Rectangle Fill="Black" Opacity="0.7"/>
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock Text="{Binding KeypadPurpose}" 
+                           FontSize="24" 
+                           Margin="0,0,0,20" 
+                           Foreground="White"/>
+                <views:KeypadView DataContext="{Binding KeypadViewModel}"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

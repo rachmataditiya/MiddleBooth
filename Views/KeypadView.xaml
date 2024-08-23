@@ -1,0 +1,71 @@
+﻿<UserControl x:Class="MiddleBooth.Views.KeypadView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:local="clr-namespace:MiddleBooth.Views">
+
+    <UserControl.Resources>
+        <!-- Keypad Button Style -->
+        <Style x:Key="KeypadButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="90"/>
+            <Setter Property="Height" Value="90"/>
+            <Setter Property="FontSize" Value="28"/>
+            <Setter Property="Margin" Value="8"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" CornerRadius="8" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="LightGray"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="White" Width="320" Height="480">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- TextBox for Entered PIN -->
+        <Border Grid.Row="0" HorizontalAlignment="Center" Background="LightGray" CornerRadius="10" Padding="10" Margin="20">
+            <TextBlock Text="{Binding EnteredPin, Converter={StaticResource PinMaskConverter}}" 
+                       FontSize="36" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"
+                       Foreground="Black" 
+                       TextAlignment="Center"/>
+        </Border>
+
+        <!-- Keypad Buttons -->
+        <UniformGrid Rows="4" Columns="3" Grid.Row="1" HorizontalAlignment="Center">
+            <Button Content="1" Command="{Binding NumberCommand}" CommandParameter="1" Style="{StaticResource KeypadButtonStyle}" Background="Coral"/>
+            <Button Content="2" Command="{Binding NumberCommand}" CommandParameter="2" Style="{StaticResource KeypadButtonStyle}" Background="LightSkyBlue"/>
+            <Button Content="3" Command="{Binding NumberCommand}" CommandParameter="3" Style="{StaticResource KeypadButtonStyle}" Background="LightGreen"/>
+            <Button Content="4" Command="{Binding NumberCommand}" CommandParameter="4" Style="{StaticResource KeypadButtonStyle}" Background="Gold"/>
+            <Button Content="5" Command="{Binding NumberCommand}" CommandParameter="5" Style="{StaticResource KeypadButtonStyle}" Background="Plum"/>
+            <Button Content="6" Command="{Binding NumberCommand}" CommandParameter="6" Style="{StaticResource KeypadButtonStyle}" Background="Tomato"/>
+            <Button Content="7" Command="{Binding NumberCommand}" CommandParameter="7" Style="{StaticResource KeypadButtonStyle}" Background="MediumPurple"/>
+            <Button Content="8" Command="{Binding NumberCommand}" CommandParameter="8" Style="{StaticResource KeypadButtonStyle}" Background="Salmon"/>
+            <Button Content="9" Command="{Binding NumberCommand}" CommandParameter="9" Style="{StaticResource KeypadButtonStyle}" Background="LightCoral"/>
+            <Button Command="{Binding ClearCommand}" Style="{StaticResource KeypadButtonStyle}" Background="PaleVioletRed">
+                <materialDesign:PackIcon Kind="Backspace" Width="36" Height="36" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"/>
+            </Button>
+            <Button Content="0" Command="{Binding NumberCommand}" CommandParameter="0" Style="{StaticResource KeypadButtonStyle}" Background="PaleTurquoise"/>
+            <Button Command="{Binding SubmitCommand}" Style="{StaticResource KeypadButtonStyle}" Background="MediumSeaGreen">
+                <materialDesign:PackIcon Kind="Check" Width="36" Height="36" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"/>
+            </Button>
+        </UniformGrid>
+    </Grid>
+</UserControl>

@@ -1,0 +1,116 @@
+﻿<UserControl x:Class="MiddleBooth.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:local="clr-namespace:MiddleBooth.Views">
+
+    <Grid Background="White" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Title -->
+        <TextBlock Grid.Row="0" Grid.ColumnSpan="2"
+                   Text="Settings" 
+                   FontSize="36" 
+                   FontWeight="Bold" 
+                   Foreground="MediumSeaGreen" 
+                   Margin="0,0,0,20"/>
+
+        <!-- DSLR Booth Path -->
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="DSLR Booth Path" FontSize="18" VerticalAlignment="Center" Margin="0,10"/>
+        <Grid Grid.Row="1" Grid.Column="1" Margin="0,5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0" Text="{Binding DSLRBoothPath}" 
+                     FontSize="16" 
+                     Background="PaleTurquoise" 
+                     Foreground="Black" 
+                     Padding="5" 
+                     VerticalAlignment="Center"/>
+            <Button Grid.Column="1" Content="Pilih" 
+                    Command="{Binding BrowseDSLRBoothPathCommand}" 
+                    Style="{StaticResource LargeButtonStyle}" 
+                    Width="80" 
+                    Height="30" 
+                    Margin="10,0,0,0"/>
+        </Grid>
+
+        <!-- Payment Gateway URL -->
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Payment Gateway URL" FontSize="18" VerticalAlignment="Center" Margin="0,10"/>
+        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding PaymentGatewayUrl}" 
+                 FontSize="16" 
+                 Background="PaleTurquoise" 
+                 Foreground="Black" 
+                 Padding="5" 
+                 VerticalAlignment="Center"/>
+
+        <!-- Service Price -->
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="Service Price" FontSize="18" VerticalAlignment="Center" Margin="0,10"/>
+        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding ServicePrice}" 
+                 FontSize="16" 
+                 Background="PaleTurquoise" 
+                 Foreground="Black" 
+                 Padding="5" 
+                 VerticalAlignment="Center"/>
+
+        <!-- Application PIN -->
+        <TextBlock Grid.Row="4" Grid.Column="0" Text="Application PIN" FontSize="18" VerticalAlignment="Center" Margin="0,10"/>
+        <PasswordBox Grid.Row="4" Grid.Column="1" PasswordChanged="PasswordBox_PasswordChanged"
+                     FontSize="16" 
+                     Background="PaleTurquoise" 
+                     Foreground="Black" 
+                     Padding="5" 
+                     VerticalAlignment="Center"/>
+
+        <!-- Midtrans Server Key -->
+        <TextBlock Grid.Row="5" Grid.Column="0" Text="Midtrans Server Key" FontSize="18" VerticalAlignment="Center" Margin="0,10"/>
+        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding MidtransServerKey}" 
+                 FontSize="16" 
+                 Background="PaleTurquoise" 
+                 Foreground="Black" 
+                 Padding="5" 
+                 VerticalAlignment="Center"/>
+
+        <!-- Production Mode -->
+        <CheckBox Grid.Row="6" Grid.Column="1" Content="Production Mode" 
+                  IsChecked="{Binding IsProduction}" 
+                  FontSize="16" 
+                  Margin="0,10" 
+                  Background="LightSkyBlue" 
+                  Foreground="Black" 
+                  Padding="5"/>
+
+        <!-- Save and Back Buttons -->
+        <StackPanel Grid.Row="7" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="20,30,0,0">
+            <Button Command="{Binding SaveSettingsCommand}" 
+                    Content="Save" 
+                    Style="{StaticResource LargeButtonStyle}" 
+                    Background="MediumSeaGreen" 
+                    Width="120" 
+                    Height="40" 
+                    Margin="0,0,20,0"/>
+
+            <Button Command="{Binding BackCommand}" 
+                    Content="Back" 
+                    Style="{StaticResource LargeButtonStyle}" 
+                    Background="Tomato" 
+                    Width="120" 
+                    Height="40"/>
+        </StackPanel>
+    </Grid>
+</UserControl>
