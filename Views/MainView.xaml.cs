@@ -6,7 +6,7 @@ namespace MiddleBooth.Views
 {
     public partial class MainView : UserControl
     {
-        public MainView(ISettingsService settingsService, INavigationService navigationService, IDSLRBoothService dslrBoothService)
+        public MainView(ISettingsService settingsService, INavigationService navigationService, IDSLRBoothService dslrBoothService, IWebServerService webServerService)
         {
             InitializeComponent();
             DataContext = new MainViewModel(settingsService, navigationService, dslrBoothService);

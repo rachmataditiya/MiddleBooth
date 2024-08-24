@@ -128,31 +128,6 @@ namespace MiddleBooth.Services
             }
         }
 
-        public async Task<bool> ValidateVoucher(string voucherCode)
-        {
-            Log.Information("Validating voucher code: {VoucherCode}", voucherCode);
-            await Task.Delay(1000); // Simulasi delay jaringan
-            var isValid = voucherCode.Length == 8;
-            Log.Information("Voucher validation result for {VoucherCode}: {IsValid}", voucherCode, isValid);
-            return isValid;
-        }
-
-        public async Task<PaymentModel> ProcessPayment(string paymentMethod, string paymentData)
-        {
-            Log.Information("Processing payment with method: {PaymentMethod}", paymentMethod);
-            await Task.Delay(2000); // Simulasi delay jaringan
-
-            var paymentModel = new PaymentModel
-            {
-                Amount = _settingsService.GetServicePrice(),
-                PaymentMethod = paymentMethod,
-                Status = "Success"
-            };
-
-            Log.Information("Payment processed successfully. Method: {PaymentMethod}, Amount: {Amount}", paymentMethod, paymentModel.Amount);
-            return paymentModel;
-        }
-
         public void ProcessPaymentNotification(string notificationJson)
         {
             Log.Information("Memproses notifikasi pembayaran: {NotificationJson}", notificationJson);
@@ -166,7 +141,6 @@ namespace MiddleBooth.Services
 
             if (notification != null)
             {
-                // Verifikasi signature key
                 var computedSignatureKey = ComputeSignature(notification);
                 if (computedSignatureKey != notification.SignatureKey)
                 {
@@ -174,7 +148,6 @@ namespace MiddleBooth.Services
                     return;
                 }
 
-                // Menangani status transaksi
                 switch (notification.TransactionStatus)
                 {
                     case "settlement":
@@ -199,7 +172,6 @@ namespace MiddleBooth.Services
                 Log.Warning("Gagal mendeserialisasi notifikasi pembayaran.");
             }
         }
-
 
         private string ComputeSignature(MidtransNotification notification)
         {

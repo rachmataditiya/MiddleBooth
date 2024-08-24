@@ -6,7 +6,7 @@ namespace MiddleBooth.Services.Interfaces
     {
         bool CheckDSLRBoothPath();
         Task<bool> LaunchDSLRBooth();
-        Task SetDSLRBoothTopmost(bool isTopmost);
+        Task SetDSLRBoothVisibility(bool isVisible);
         bool IsDSLRBoothRunning();
     }
 }

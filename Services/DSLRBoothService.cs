@@ -3,9 +3,10 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Interop;
 using System.Runtime.InteropServices;
+using Serilog;
+using System.Windows.Interop;
+using System.Windows;
 
 namespace MiddleBooth.Services
 {
@@ -15,15 +16,17 @@ namespace MiddleBooth.Services
         private Process? _dslrBoothProcess;
 
         [DllImport("user32.dll")]
-        private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
         [DllImport("user32.dll")]
         private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
-        private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
-        private static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
-        private const uint SWP_NOMOVE = 0x0002;
-        private const uint SWP_NOSIZE = 0x0001;
+        private const int SW_HIDE = 0;
+        private const int SW_SHOW = 5;
+        private const int SW_RESTORE = 9;
 
         public DSLRBoothService(ISettingsService settingsService)
         {
@@ -40,13 +43,25 @@ namespace MiddleBooth.Services
         {
             if (!CheckDSLRBoothPath())
             {
+                Log.Warning("DSLRBooth path is invalid or not set.");
                 return false;
             }
 
             string path = _settingsService.GetDSLRBoothPath();
-
             try
             {
+                if (_dslrBoothProcess != null && !_dslrBoothProcess.HasExited)
+                {
+                    Log.Information("Stopping existing DSLRBooth process.");
+                    _dslrBoothProcess.CloseMainWindow();
+                    await Task.Delay(1000);
+                    if (!_dslrBoothProcess.HasExited)
+                    {
+                        _dslrBoothProcess.Kill();
+                    }
+                }
+
+                Log.Information("Launching DSLRBooth from path: {Path}", path);
                 _dslrBoothProcess = new Process
                 {
                     StartInfo = new ProcessStartInfo
@@ -55,48 +70,61 @@ namespace MiddleBooth.Services
                         UseShellExecute = true
                     }
                 };
-
                 _dslrBoothProcess.Start();
-                await Task.Delay(2000); // Berikan waktu untuk DSLRBooth untuk memulai
+                await Task.Delay(3000);
+                Log.Information("DSLRBooth launched successfully.");
                 return true;
             }
             catch (Exception ex)
             {
-                // Log the exception
+                Log.Error(ex, "Error launching DSLRBooth");
                 return false;
             }
         }
 
-        public async Task SetDSLRBoothTopmost(bool isTopmost)
+        public Task SetDSLRBoothVisibility(bool isVisible)
         {
-            await Task.Run(() =>
+            return Task.Run(() =>
             {
-                IntPtr hWnd = FindWindow(null, "DSLRBooth");
-                if (hWnd != IntPtr.Zero)
+                var dslrBoothProcess = Process.GetProcessesByName("dslrBooth").FirstOrDefault();
+                if (dslrBoothProcess != null && dslrBoothProcess.MainWindowHandle != IntPtr.Zero)
                 {
-                    SetWindowPos(hWnd,
-                                 isTopmost ? HWND_TOPMOST : HWND_NOTOPMOST,
-                                 0, 0, 0, 0,
-                                 SWP_NOMOVE | SWP_NOSIZE);
+                    if (isVisible)
+                    {
+                        BringToFront(dslrBoothProcess.MainWindowHandle, restoreIfMinimized: true);
+                    }
                 }
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    var mainWindow = Application.Current.MainWindow as MainWindow;
+                    if (mainWindow != null)
+                    {
+                        mainWindow.SetVisibility(!isVisible);
+                    }
+                });
             });
         }
-
         public bool IsDSLRBoothRunning()
         {
             if (_dslrBoothProcess != null && !_dslrBoothProcess.HasExited)
             {
                 return true;
             }
-
-            Process[] processes = Process.GetProcessesByName("DSLRBooth");
+            Process[] processes = Process.GetProcessesByName("dslrBooth");
             if (processes.Length > 0)
             {
                 _dslrBoothProcess = processes[0];
                 return true;
             }
-
             return false;
+        }
+        public static void BringToFront(IntPtr handle, bool restoreIfMinimized = false)
+        {
+            if (restoreIfMinimized)
+            {
+                ShowWindow(handle, SW_RESTORE);
+            }
+            SetForegroundWindow(handle);
         }
     }
 }

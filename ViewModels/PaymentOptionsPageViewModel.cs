@@ -1,6 +1,9 @@
-﻿using MiddleBooth.Services.Interfaces;
+﻿// File: ViewModels/PaymentOptionsPageViewModel.cs
+
+using MiddleBooth.Services.Interfaces;
 using MiddleBooth.Utilities;
 using System.Windows.Input;
+using Serilog;
 
 namespace MiddleBooth.ViewModels
 {
@@ -13,8 +16,6 @@ namespace MiddleBooth.ViewModels
         public ICommand VoucherPaymentCommand { get; }
         public ICommand BackCommand { get; }
 
-        private bool _isQrisPaymentInProgress;
-
         public PaymentOptionsPageViewModel(INavigationService navigationService, IPaymentService paymentService)
         {
             _navigationService = navigationService;
@@ -23,18 +24,19 @@ namespace MiddleBooth.ViewModels
             QrisPaymentCommand = new RelayCommand(_ => StartQrisPayment());
             VoucherPaymentCommand = new RelayCommand(_ => StartVoucherPayment());
             BackCommand = new RelayCommand(_ => _navigationService.NavigateTo("MainView"));
+
+            Log.Information("PaymentOptionsPageViewModel initialized");
         }
 
-        private async void StartQrisPayment()
+        private void StartQrisPayment()
         {
-            if (_isQrisPaymentInProgress) return;
-            _isQrisPaymentInProgress = true;
+            Log.Information("Starting QRIS payment process");
             _navigationService.NavigateTo("QrisPaymentPage");
-            _isQrisPaymentInProgress = false;
         }
 
         private void StartVoucherPayment()
         {
+            Log.Information("Starting voucher payment process");
             _navigationService.NavigateTo("VoucherPaymentPage");
         }
     }

@@ -64,7 +64,7 @@ namespace MiddleBooth
                     if (launched)
                     {
                         Log.Information("DSLRBooth launched successfully");
-                        await dslrBoothService.SetDSLRBoothTopmost(false);
+                        await dslrBoothService.SetDSLRBoothVisibility(false);
                     }
                     else
                     {
@@ -74,7 +74,7 @@ namespace MiddleBooth
                 else
                 {
                     Log.Information("DSLRBooth is already running");
-                    await dslrBoothService.SetDSLRBoothTopmost(false);
+                    await dslrBoothService.SetDSLRBoothVisibility(false);
                 }
             }
             else

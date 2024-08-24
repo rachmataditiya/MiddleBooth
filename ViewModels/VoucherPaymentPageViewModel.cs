@@ -10,12 +10,13 @@ using Serilog;
 
 namespace MiddleBooth.ViewModels
 {
-    public class VoucherPaymentPageViewModel : BaseViewModel
+    public class VoucherPaymentPageViewModel : BaseViewModel, IDisposable
     {
         private readonly INavigationService _navigationService;
         private readonly IPaymentService _paymentService;
         private readonly IOdooService _odooService;
         private readonly IDSLRBoothService _dslrBoothService;
+        private readonly IWebServerService _webServerService;
 
         public ICommand ValidateVoucherCommand { get; }
         public ICommand BackCommand { get; }
@@ -41,17 +42,33 @@ namespace MiddleBooth.ViewModels
             set => SetProperty(ref _validationResultColor, value);
         }
 
-        public VoucherPaymentPageViewModel(INavigationService navigationService, IPaymentService paymentService, IOdooService odooService, IDSLRBoothService dslrBoothService)
+        public VoucherPaymentPageViewModel(INavigationService navigationService, IPaymentService paymentService, IOdooService odooService, IDSLRBoothService dslrBoothService, IWebServerService webServerService)
         {
             _navigationService = navigationService;
             _paymentService = paymentService;
             _odooService = odooService;
             _dslrBoothService = dslrBoothService;
+            _webServerService = webServerService;
 
             ValidateVoucherCommand = new RelayCommand(async _ => await ValidateVoucherAsync());
             BackCommand = new RelayCommand(_ => _navigationService.NavigateTo("PaymentOptionsPage"));
 
+            _webServerService.TriggerReceived += OnTriggerReceived;
+
             Log.Information("VoucherPaymentPageViewModel initialized");
+        }
+
+        private async void OnTriggerReceived(object? sender, DSLRBoothEvent e)
+        {
+            if (e.EventType == "session_end")
+            {
+                Log.Information("DSLRBooth session ended. Navigating to MainView.");
+                await _dslrBoothService.SetDSLRBoothVisibility(false);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    _navigationService.NavigateTo("MainView");
+                });
+            }
         }
 
         private async Task ValidateVoucherAsync()
@@ -120,33 +137,25 @@ namespace MiddleBooth.ViewModels
             {
                 if (_dslrBoothService.IsDSLRBoothRunning())
                 {
-                    await _dslrBoothService.SetDSLRBoothTopmost(true);
-                    Log.Information("DSLRBooth set to topmost after successful voucher validation");
+                    await _dslrBoothService.SetDSLRBoothVisibility(true);
+                    Log.Information("DSLRBooth set to visible after successful voucher validation");
                 }
                 else
                 {
                     bool launched = await _dslrBoothService.LaunchDSLRBooth();
                     if (launched)
                     {
-                        await _dslrBoothService.SetDSLRBoothTopmost(true);
-                        Log.Information("DSLRBooth launched and set to topmost after successful voucher validation");
+                        await _dslrBoothService.SetDSLRBoothVisibility(true);
+                        Log.Information("DSLRBooth launched and set to visible after successful voucher validation");
                     }
                     else
                     {
                         Log.Warning("Failed to launch DSLRBooth after successful voucher validation");
                         ValidationResult = "Voucher valid, tapi gagal menjalankan DSLRBooth. Silakan cek pengaturan.";
                         ValidationResultColor = "Orange";
+                        return;
                     }
                 }
-
-                // Set MiddleBooth window to not topmost
-                if (Application.Current.MainWindow is MainWindow mainWindow)
-                {
-                    mainWindow.SetTopmost(false);
-                }
-
-                await Task.Delay(3000); // Memberikan waktu untuk user melihat pesan sukses
-                _navigationService.NavigateTo("MainView");
             }
             catch (Exception ex)
             {
@@ -154,6 +163,11 @@ namespace MiddleBooth.ViewModels
                 ValidationResult = "Terjadi kesalahan saat menjalankan DSLRBooth. Silakan hubungi administrator.";
                 ValidationResultColor = "Red";
             }
+        }
+
+        public void Dispose()
+        {
+            _webServerService.TriggerReceived -= OnTriggerReceived;
         }
     }
 }

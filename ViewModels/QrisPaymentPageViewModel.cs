@@ -11,7 +11,7 @@ using Serilog;
 
 namespace MiddleBooth.ViewModels
 {
-    public class QrisPaymentPageViewModel : BaseViewModel
+    public class QrisPaymentPageViewModel : BaseViewModel, IDisposable
     {
         private readonly INavigationService _navigationService;
         private readonly IPaymentService _paymentService;
@@ -124,7 +124,7 @@ namespace MiddleBooth.ViewModels
             {
                 if (_dslrBoothService.IsDSLRBoothRunning())
                 {
-                    await _dslrBoothService.SetDSLRBoothTopmost(true);
+                    await _dslrBoothService.SetDSLRBoothVisibility(true);
                     Log.Information("DSLRBooth set to topmost after successful payment");
                 }
                 else
@@ -132,24 +132,25 @@ namespace MiddleBooth.ViewModels
                     bool launched = await _dslrBoothService.LaunchDSLRBooth();
                     if (launched)
                     {
-                        await _dslrBoothService.SetDSLRBoothTopmost(true);
+                        await _dslrBoothService.SetDSLRBoothVisibility(true);
                         Log.Information("DSLRBooth launched and set to topmost after successful payment");
                     }
                     else
                     {
                         Log.Warning("Failed to launch DSLRBooth after successful payment");
                         ShowNotification("Pembayaran berhasil, tapi gagal menjalankan DSLRBooth. Silakan cek pengaturan.");
+                        return;
                     }
                 }
 
                 // Set MiddleBooth window to not topmost
                 if (Application.Current.MainWindow is MainWindow mainWindow)
                 {
-                    mainWindow.SetTopmost(false);
+                    mainWindow.SetVisibility(true);
                 }
 
                 // Buat order QRIS secara asinkron
-                _ = Task.Run(CreateQRISOrder);
+                await CreateQRISOrder();
 
                 _navigationService.NavigateTo("MainView");
             }
@@ -234,7 +235,7 @@ namespace MiddleBooth.ViewModels
             });
         }
 
-        ~QrisPaymentPageViewModel()
+        public void Dispose()
         {
             _paymentService.OnPaymentNotificationReceived -= HandlePaymentNotification;
         }
