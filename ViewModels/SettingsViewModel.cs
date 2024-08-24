@@ -94,6 +94,60 @@ namespace MiddleBooth.ViewModels
             }
         }
 
+        // Odoo Server
+        private string _odooServer = string.Empty;
+        public string OdooServer
+        {
+            get => _odooServer;
+            set
+            {
+                if (SetProperty(ref _odooServer, value))
+                {
+                    _settingsService.SetOdooServer(value);
+                }
+            }
+        }
+
+        // Odoo Username
+        private string _odooUsername = string.Empty;
+        public string OdooUsername
+        {
+            get => _odooUsername;
+            set
+            {
+                if (SetProperty(ref _odooUsername, value))
+                {
+                    _settingsService.SetOdooUsername(value);
+                }
+            }
+        }
+
+        // Odoo Password
+        private string _odooPassword = string.Empty;
+        public string OdooPassword
+        {
+            get => _odooPassword;
+            set
+            {
+                if (SetProperty(ref _odooPassword, value))
+                {
+                    _settingsService.SetOdooPassword(value);
+                }
+            }
+        }
+        private string _odooDatabase = string.Empty;
+        public string OdooDatabase
+        {
+            get => _odooDatabase;
+            set
+            {
+                if (SetProperty(ref _odooDatabase, value))
+                {
+                    _settingsService.SetOdooDatabase(value);
+                }
+            }
+        }
+
         private bool _isNotificationVisible;
         public bool IsNotificationVisible
         {
@@ -120,6 +174,10 @@ namespace MiddleBooth.ViewModels
             ApplicationPin = _settingsService.GetApplicationPin();
             IsProduction = _settingsService.IsProduction();
             MidtransServerKey = _settingsService.GetMidtransServerKey();
+            OdooServer = _settingsService.GetOdooServer();
+            OdooUsername = _settingsService.GetOdooUsername();
+            OdooPassword = _settingsService.GetOdooPassword();
+            OdooDatabase = _settingsService.GetOdooDatabase();
 
             // Commands
             SaveSettingsCommand = new RelayCommand(SaveSettings);
@@ -150,6 +208,10 @@ namespace MiddleBooth.ViewModels
             _settingsService.SetApplicationPin(ApplicationPin);
             _settingsService.SetProduction(IsProduction);
             _settingsService.SetMidtransServerKey(MidtransServerKey);
+            _settingsService.SetOdooServer(OdooServer);
+            _settingsService.SetOdooUsername(OdooUsername);
+            _settingsService.SetOdooPassword(OdooPassword);
+            _settingsService.SetOdooDatabase(OdooDatabase);
 
             // Show notification
             NotificationMessage = "Pengaturan berhasil disimpan!";

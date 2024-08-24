@@ -18,5 +18,12 @@ namespace MiddleBooth.Views
                 viewModel.ApplicationPin = passwordBox.Password;
             }
         }
+        private void OdooPasswordBox_PasswordChanged(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (DataContext is SettingsViewModel viewModel && sender is PasswordBox passwordBox)
+            {
+                viewModel.OdooPassword = passwordBox.Password;
+            }
+        }
     }
 }

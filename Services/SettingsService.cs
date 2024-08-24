@@ -76,10 +76,56 @@ namespace MiddleBooth.Services
                 : "https://api.sandbox.midtrans.com/v2/";
         }
 
+        public string GetOdooServer()
+        {
+            return ConfigurationManager.AppSettings["OdooServer"] ?? string.Empty;
+        }
+
+        public void SetOdooServer(string server)
+        {
+            UpdateSetting("OdooServer", server);
+        }
+
+        public string GetOdooUsername()
+        {
+            return ConfigurationManager.AppSettings["OdooUsername"] ?? string.Empty;
+        }
+
+        public void SetOdooUsername(string username)
+        {
+            UpdateSetting("OdooUsername", username);
+        }
+
+        public string GetOdooPassword()
+        {
+            return ConfigurationManager.AppSettings["OdooPassword"] ?? string.Empty;
+        }
+
+        public void SetOdooPassword(string password)
+        {
+            UpdateSetting("OdooPassword", password);
+        }
+        public string GetOdooDatabase()
+        {
+            return ConfigurationManager.AppSettings["OdooDatabase"] ?? string.Empty;
+        }
+
+        public void SetOdooDatabase(string database)
+        {
+            UpdateSetting("OdooDatabase", database);
+        }
+
         private static void UpdateSetting(string key, string value)
         {
             Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            config.AppSettings.Settings[key].Value = value;
+            if (config.AppSettings.Settings[key] == null)
+            {
+                config.AppSettings.Settings.Add(key, value);
+            }
+            else
+            {
+                config.AppSettings.Settings[key].Value = value;
+            }
             config.Save(ConfigurationSaveMode.Modified);
             ConfigurationManager.RefreshSection("appSettings");
         }

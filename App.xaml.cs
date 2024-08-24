@@ -16,7 +16,6 @@ namespace MiddleBooth
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            // Inisialisasi logger sebelum layanan diinisialisasi
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.File("logs\\app-log.txt", rollingInterval: RollingInterval.Day)
                 .CreateLogger();
@@ -45,7 +44,8 @@ namespace MiddleBooth
             services.AddSingleton<IWebServerService, WebServerService>();
             services.AddSingleton<INavigationService, NavigationService>();
             services.AddSingleton<IPaymentService, PaymentService>();
-            services.AddSingleton<IDSLRBoothService, DSLRBoothService>(); // Add this line
+            services.AddSingleton<IDSLRBoothService, DSLRBoothService>();
+            services.AddSingleton<IOdooService, OdooService>();
 
             // Tambahkan logging ke DI
             services.AddLogging(loggingBuilder =>

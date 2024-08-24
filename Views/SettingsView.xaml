@@ -78,6 +78,28 @@
                          FontSize="16" 
                          Padding="10"/>
 
+                <!-- Odoo Server -->
+                <TextBlock Text="Odoo Server" FontSize="18" Margin="0,20,0,5"/>
+                <TextBox Text="{Binding OdooServer}" 
+                         FontSize="16" 
+                         Padding="10"/>
+
+                <!-- Odoo Username -->
+                <TextBlock Text="Odoo Username" FontSize="18" Margin="0,20,0,5"/>
+                <TextBox Text="{Binding OdooUsername}" 
+                         FontSize="16" 
+                         Padding="10"/>
+
+                <!-- Odoo Password -->
+                <TextBlock Text="Odoo Password" FontSize="18" Margin="0,20,0,5"/>
+                <PasswordBox PasswordChanged="OdooPasswordBox_PasswordChanged"
+                             FontSize="16" 
+                             Padding="10"/>
+                <TextBlock Text="Odoo Database" FontSize="18" Margin="0,20,0,5"/>
+                <TextBox Text="{Binding OdooDatabase}" 
+                         FontSize="16" 
+                         Padding="10"/>
+
                 <!-- Production Mode -->
                 <CheckBox Content="Mode Produksi" 
                           IsChecked="{Binding IsProduction}" 

@@ -15,5 +15,13 @@
         bool IsProduction();
         void SetProduction(bool isProduction);
         string GetMidtransBaseUrl();
+        string GetOdooServer();
+        void SetOdooServer(string server);
+        string GetOdooUsername();
+        void SetOdooUsername(string username);
+        string GetOdooPassword();
+        void SetOdooPassword(string password);
+        string GetOdooDatabase();
+        void SetOdooDatabase(string database);
     }
 }

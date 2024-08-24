@@ -1,5 +1,6 @@
 ﻿// File: MainWindow.xaml.cs
 
+using System;
 using System.Windows;
 using MiddleBooth.Views;
 using MiddleBooth.Services;
@@ -16,6 +17,7 @@ namespace MiddleBooth
         private readonly INavigationService _navigationService;
         private readonly IPaymentService _paymentService;
         private readonly IDSLRBoothService _dslrBoothService;
+        private readonly IOdooService _odooService;
 
         public MainWindow()
         {
@@ -28,6 +30,7 @@ namespace MiddleBooth
             _navigationService = serviceProvider.GetRequiredService<INavigationService>();
             _paymentService = serviceProvider.GetRequiredService<IPaymentService>();
             _dslrBoothService = serviceProvider.GetRequiredService<IDSLRBoothService>();
+            _odooService = serviceProvider.GetRequiredService<IOdooService>();
 
             _navigationService.NavigationRequested += OnNavigationRequested;
             _navigationService.OverlayRequested += OnOverlayRequested;
@@ -42,7 +45,7 @@ namespace MiddleBooth
                 "SettingsView" => new SettingsView(new SettingsViewModel(_settingsService, _navigationService)),
                 "PaymentOptionsPage" => new PaymentOptionsPage(new PaymentOptionsPageViewModel(_navigationService, _paymentService)),
                 "QrisPaymentPage" => new QrisPaymentPage(new QrisPaymentPageViewModel(_navigationService, _paymentService, _dslrBoothService)),
-                "VoucherPaymentPage" => new VoucherPaymentPage(new VoucherPaymentPageViewModel(_navigationService, _paymentService)),
+                "VoucherPaymentPage" => new VoucherPaymentPage(new VoucherPaymentPageViewModel(_navigationService, _paymentService, _odooService)),
                 _ => new MainView(_settingsService, _navigationService, _dslrBoothService)
             };
         }
