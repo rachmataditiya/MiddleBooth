@@ -9,11 +9,9 @@ namespace MiddleBooth.Services.Interfaces
         Task<string> GenerateQRCode(decimal amount);
         Task<bool> ValidateVoucher(string voucherCode);
         Task<PaymentModel> ProcessPayment(string paymentMethod, string paymentData);
+        public void ProcessPaymentNotification(string notificationJson);
 
-        // Tambahkan event untuk notifikasi pembayaran
         event Action<string> OnPaymentNotificationReceived;
-
-        // Tambahkan metode untuk mendapatkan harga layanan
         decimal GetServicePrice();
     }
 }

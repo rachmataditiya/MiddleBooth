@@ -38,6 +38,7 @@ namespace MiddleBooth
             services.AddSingleton<ISettingsService, SettingsService>();
             services.AddSingleton<IWebServerService, WebServerService>();
             services.AddSingleton<INavigationService, NavigationService>();
+            services.AddSingleton<IPaymentService, PaymentService>();
 
             // Tambahkan logging ke DI
             services.AddLogging(loggingBuilder =>

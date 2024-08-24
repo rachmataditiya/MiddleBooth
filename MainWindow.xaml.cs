@@ -4,6 +4,7 @@ using MiddleBooth.Services;
 using MiddleBooth.Services.Interfaces;
 using MiddleBooth.ViewModels;
 using System.Windows.Controls;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MiddleBooth
 {
@@ -17,15 +18,19 @@ namespace MiddleBooth
         {
             InitializeComponent();
 
-            _settingsService = new SettingsService();
-            _navigationService = new NavigationService();
-            _paymentService = new PaymentService(_settingsService, _navigationService);
+            var serviceProvider = ((App)Application.Current).ServiceProvider
+                                  ?? throw new InvalidOperationException("ServiceProvider is not initialized.");
+
+            _settingsService = serviceProvider.GetRequiredService<ISettingsService>();
+            _navigationService = serviceProvider.GetRequiredService<INavigationService>();
+            _paymentService = serviceProvider.GetRequiredService<IPaymentService>();
 
             _navigationService.NavigationRequested += OnNavigationRequested;
             _navigationService.OverlayRequested += OnOverlayRequested;
 
             Content = new MainView(_settingsService, _navigationService);
         }
+
 
         private void OnNavigationRequested(object? sender, string viewName)
         {
@@ -38,6 +43,7 @@ namespace MiddleBooth
                 _ => new MainView(_settingsService, _navigationService)
             };
         }
+
         private void OnOverlayRequested(object? sender, object overlayView)
         {
             if (overlayView is UserControl overlayControl)

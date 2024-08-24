@@ -10,7 +10,12 @@ public class WebServerService : IWebServerService
 
     public event EventHandler<string>? TriggerReceived;
     public event EventHandler<string>? PaymentNotificationReceived;
+    private readonly IPaymentService? _paymentService;
 
+    public WebServerService(IPaymentService paymentService)
+    {
+        _paymentService = paymentService ?? throw new ArgumentNullException(nameof(paymentService));
+    }
     public async Task StartServerAsync()
     {
         if (_isListening) return;
@@ -58,6 +63,7 @@ public class WebServerService : IWebServerService
             string paymentData = await reader.ReadToEndAsync();
             Log.Information($"Payment notification received: {paymentData}");
             PaymentNotificationReceived?.Invoke(this, paymentData);
+            _paymentService?.ProcessPaymentNotification(paymentData);
         }
         else
         {

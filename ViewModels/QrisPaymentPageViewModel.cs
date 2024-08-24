@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace MiddleBooth.ViewModels
 {
@@ -96,16 +97,27 @@ namespace MiddleBooth.ViewModels
 
         private void HandlePaymentNotification(string status)
         {
+            Log.Information($"Payment notification received in ViewModel: {status}");
+
             Application.Current.Dispatcher.Invoke(() =>
             {
+                Log.Information("Memperbarui status pembayaran di UI.");
                 UpdatePaymentStatus(status);
                 ShowNotification($"Status pembayaran: {PaymentStatus}");
+
+                // Jika pembayaran berhasil, pindah ke halaman utama
+                if (status.ToLower().Trim() == "settlement")
+                {
+                    _navigationService.NavigateTo("MainView");
+                }
             });
         }
 
         private void UpdatePaymentStatus(string status)
         {
-            switch (status.ToLower())
+            Log.Information($"Memperbarui status pembayaran menjadi: {status}");
+
+            switch (status.ToLower().Trim())
             {
                 case "settlement":
                     PaymentStatus = "Pembayaran Berhasil!";
@@ -134,16 +146,18 @@ namespace MiddleBooth.ViewModels
 
         private void ShowNotification(string message)
         {
+            Log.Information($"Menampilkan notifikasi: {message}");
             NotificationMessage = message;
             IsNotificationVisible = true;
 
-            // Hide notification after 3 seconds
+            // Sembunyikan notifikasi setelah 3 detik
             Task.Delay(3000).ContinueWith(_ =>
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     IsNotificationVisible = false;
                     NotificationMessage = string.Empty;
+                    Log.Information("Notifikasi disembunyikan.");
                 });
             });
         }

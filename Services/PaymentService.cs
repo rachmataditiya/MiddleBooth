@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using MiddleBooth.Models;
 using MiddleBooth.Services.Interfaces;
 using Serilog;
+using System.Security.Cryptography;
 
 namespace MiddleBooth.Services
 {
@@ -154,21 +155,61 @@ namespace MiddleBooth.Services
 
         public void ProcessPaymentNotification(string notificationJson)
         {
-            Log.Information("Processing payment notification: {NotificationJson}", notificationJson);
+            Log.Information("Memproses notifikasi pembayaran: {NotificationJson}", notificationJson);
             var options = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
-                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             };
+
             var notification = JsonSerializer.Deserialize<MidtransNotification>(notificationJson, options);
+
             if (notification != null)
             {
-                Log.Information("Payment notification received. Status: {Status}, Order ID: {OrderId}", notification.TransactionStatus, notification.OrderId);
-                OnPaymentNotificationReceived?.Invoke(notification.TransactionStatus);
+                // Verifikasi signature key
+                var computedSignatureKey = ComputeSignature(notification);
+                if (computedSignatureKey != notification.SignatureKey)
+                {
+                    Log.Warning("Verifikasi signature key gagal.");
+                    return;
+                }
+
+                // Menangani status transaksi
+                switch (notification.TransactionStatus)
+                {
+                    case "settlement":
+                        Log.Information("Pembayaran berhasil diselesaikan untuk Order ID: {OrderId}", notification.OrderId);
+                        OnPaymentNotificationReceived?.Invoke("settlement");
+                        break;
+                    case "pending":
+                        Log.Information("Pembayaran tertunda untuk Order ID: {OrderId}", notification.OrderId);
+                        OnPaymentNotificationReceived?.Invoke("pending");
+                        break;
+                    case "expire":
+                        Log.Information("Pembayaran kedaluwarsa untuk Order ID: {OrderId}", notification.OrderId);
+                        OnPaymentNotificationReceived?.Invoke("expire");
+                        break;
+                    default:
+                        Log.Warning("Status transaksi tidak dikenal: {TransactionStatus}", notification.TransactionStatus);
+                        break;
+                }
             }
             else
             {
-                Log.Warning("Failed to deserialize payment notification.");
+                Log.Warning("Gagal mendeserialisasi notifikasi pembayaran.");
+            }
+        }
+
+
+        private string ComputeSignature(MidtransNotification notification)
+        {
+            var merchantServerKey = _settingsService.GetMidtransServerKey();
+            var signatureFields = $"{notification.OrderId}{notification.StatusCode}{notification.GrossAmount}{merchantServerKey}";
+
+            using (var sha512 = SHA512.Create())
+            {
+                var hashBytes = sha512.ComputeHash(Encoding.UTF8.GetBytes(signatureFields));
+                return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
             }
         }
 
