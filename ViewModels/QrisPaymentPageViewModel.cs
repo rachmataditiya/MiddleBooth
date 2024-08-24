@@ -28,6 +28,7 @@ namespace MiddleBooth.ViewModels
             get => _paymentStatus;
             set => SetProperty(ref _paymentStatus, value);
         }
+
         private string _paymentStatusColor = "Gray";
         public string PaymentStatusColor
         {
@@ -35,28 +36,18 @@ namespace MiddleBooth.ViewModels
             set => SetProperty(ref _paymentStatusColor, value);
         }
 
-        private void UpdatePaymentStatus(string status)
+        private bool _isNotificationVisible;
+        public bool IsNotificationVisible
         {
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                switch (status.ToLower())
-                {
-                    case "settlement":
-                        PaymentStatus = "Pembayaran Berhasil!";
-                        PaymentStatusColor = "Green";
-                        break;
-                    case "deny":
-                    case "cancel":
-                    case "expire":
-                        PaymentStatus = "Pembayaran Gagal!";
-                        PaymentStatusColor = "Red";
-                        break;
-                    default:
-                        PaymentStatus = $"Menunggu pembayaran...";
-                        PaymentStatusColor = "Orange";
-                        break;
-                }
-            });
+            get => _isNotificationVisible;
+            set => SetProperty(ref _isNotificationVisible, value);
+        }
+
+        private string _notificationMessage = string.Empty;
+        public string NotificationMessage
+        {
+            get => _notificationMessage;
+            set => SetProperty(ref _notificationMessage, value);
         }
 
         public QrisPaymentPageViewModel(INavigationService navigationService, IPaymentService paymentService)
@@ -83,11 +74,13 @@ namespace MiddleBooth.ViewModels
                     if (!string.IsNullOrWhiteSpace(qrCodeUrl))
                     {
                         QrCodeImageSource = new BitmapImage(new Uri(qrCodeUrl));
-                        PaymentStatus = "Menunggu pembayaran...";
+                        UpdatePaymentStatus("waiting");
+                        ShowNotification("QR Code berhasil dibuat. Silakan scan untuk melakukan pembayaran.");
                     }
                     else
                     {
-                        PaymentStatus = "Gagal menghasilkan QR code. Silakan coba lagi.";
+                        UpdatePaymentStatus("error");
+                        ShowNotification("Gagal menghasilkan QR code. Silakan coba lagi.");
                     }
                 });
             }
@@ -95,7 +88,8 @@ namespace MiddleBooth.ViewModels
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    PaymentStatus = $"Error: {ex.Message}";
+                    UpdatePaymentStatus("error");
+                    ShowNotification($"Error: {ex.Message}");
                 });
             }
         }
@@ -104,12 +98,53 @@ namespace MiddleBooth.ViewModels
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                PaymentStatus = status switch
+                UpdatePaymentStatus(status);
+                ShowNotification($"Status pembayaran: {PaymentStatus}");
+            });
+        }
+
+        private void UpdatePaymentStatus(string status)
+        {
+            switch (status.ToLower())
+            {
+                case "settlement":
+                    PaymentStatus = "Pembayaran Berhasil!";
+                    PaymentStatusColor = "Green";
+                    break;
+                case "deny":
+                case "cancel":
+                case "expire":
+                    PaymentStatus = "Pembayaran Gagal!";
+                    PaymentStatusColor = "Red";
+                    break;
+                case "waiting":
+                    PaymentStatus = "Menunggu pembayaran...";
+                    PaymentStatusColor = "Orange";
+                    break;
+                case "error":
+                    PaymentStatus = "Terjadi kesalahan";
+                    PaymentStatusColor = "Red";
+                    break;
+                default:
+                    PaymentStatus = $"Status: {status}";
+                    PaymentStatusColor = "Gray";
+                    break;
+            }
+        }
+
+        private void ShowNotification(string message)
+        {
+            NotificationMessage = message;
+            IsNotificationVisible = true;
+
+            // Hide notification after 3 seconds
+            Task.Delay(3000).ContinueWith(_ =>
+            {
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    "settlement" => "Pembayaran Berhasil!",
-                    "deny" or "cancel" or "expire" => "Pembayaran Gagal!",
-                    _ => $"Status pembayaran: {status}"
-                };
+                    IsNotificationVisible = false;
+                    NotificationMessage = string.Empty;
+                });
             });
         }
 

@@ -1,14 +1,14 @@
-﻿using System.Linq;
-using MiddleBooth.Models;
-using MiddleBooth.Services.Interfaces;
-using Serilog;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using MiddleBooth.Models;
+using MiddleBooth.Services.Interfaces;
+using Serilog;
 
 namespace MiddleBooth.Services
 {
@@ -18,7 +18,6 @@ namespace MiddleBooth.Services
         private readonly ISettingsService _settingsService;
         private readonly INavigationService _navigationService;
 
-        // Flag untuk menghindari duplikasi permintaan
         private bool _isRequestInProgress;
 
         public event Action<string> OnPaymentNotificationReceived = delegate { };
@@ -37,7 +36,6 @@ namespace MiddleBooth.Services
 
         public async Task<string> GenerateQRCode(decimal amount)
         {
-            // Cek apakah permintaan sedang berlangsung
             if (_isRequestInProgress)
             {
                 Log.Warning("QR code generation request is already in progress.");
@@ -46,63 +44,86 @@ namespace MiddleBooth.Services
 
             _isRequestInProgress = true;
 
-            Log.Information("Generating QR code for amount: {Amount}", amount);
-
-            var serverKey = _settingsService.GetMidtransServerKey();
-            var auth = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{serverKey}:"));
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", auth);
-
-            var orderId = $"order-{Guid.NewGuid()}";
-            Log.Information("Generated order ID: {OrderId}", orderId);
-
-            var request = new
-            {
-                payment_type = "gopay",
-                transaction_details = new
-                {
-                    order_id = orderId,
-                    gross_amount = (int)amount
-                }
-            };
-
-            var notificationUrl = _settingsService.GetPaymentGatewayUrl();
-            _httpClient.DefaultRequestHeaders.Add("X-Override-Notification", notificationUrl);
-            Log.Information("Notification URL set to: {NotificationUrl}", notificationUrl);
-
             try
             {
+                Log.Information("Generating QR code for amount: {Amount}", amount);
+
+                var serverKey = _settingsService.GetMidtransServerKey();
+                var auth = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{serverKey}:"));
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", auth);
+
+                var orderId = $"order-{Guid.NewGuid()}";
+                Log.Information("Generated order ID: {OrderId}", orderId);
+
+                var request = new
+                {
+                    payment_type = "gopay",
+                    transaction_details = new
+                    {
+                        order_id = orderId,
+                        gross_amount = (int)amount
+                    }
+                };
+
+                var notificationUrl = _settingsService.GetPaymentGatewayUrl();
+                _httpClient.DefaultRequestHeaders.Add("X-Override-Notification", notificationUrl);
+                Log.Information("Notification URL set to: {NotificationUrl}", notificationUrl);
+
                 var response = await _httpClient.PostAsync(
                     "charge",
                     new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json")
                 );
 
                 var content = await response.Content.ReadAsStringAsync();
+                Log.Information("Received response: {Content}", content);
+
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+                };
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = JsonSerializer.Deserialize<MidtransResponse>(content);
+                    var result = JsonSerializer.Deserialize<MidtransResponse>(content, options);
 
-                    if (result == null || string.IsNullOrEmpty(result.StatusCode) || result.StatusCode != "201")
+                    if (result == null)
                     {
-                        Log.Error("Invalid response from Midtrans: {Content}", content);
+                        Log.Error("Failed to deserialize Midtrans response");
                         return string.Empty;
                     }
 
-                    var qrCodeUrl = result.Actions.FirstOrDefault(a => a.Name == "generate-qr-code")?.Url ?? string.Empty;
-                    Log.Information("QR code generated successfully: {QRCodeUrl}", qrCodeUrl);
-                    return qrCodeUrl;
+                    Log.Information("Deserialized response: {@Result}", result);
+
+                    if (result.StatusCode == "201")
+                    {
+                        var qrCodeUrl = result.Actions?.FirstOrDefault(a => a.Name == "generate-qr-code")?.Url ?? string.Empty;
+                        if (!string.IsNullOrEmpty(qrCodeUrl))
+                        {
+                            Log.Information("QR code generated successfully: {QRCodeUrl}", qrCodeUrl);
+                            return qrCodeUrl;
+                        }
+                    }
+
+                    Log.Error("Unexpected status code from Midtrans: {StatusCode}. Message: {StatusMessage}",
+                              result.StatusCode, result.StatusMessage);
                 }
                 else
                 {
                     Log.Error("Failed to generate QR code. Status code: {StatusCode}, Reason: {ReasonPhrase}, Response: {Content}",
                               response.StatusCode, response.ReasonPhrase, content);
-                    return string.Empty;
                 }
+
+                return string.Empty;
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Exception occurred while generating QR code");
                 return string.Empty;
+            }
+            finally
+            {
+                _isRequestInProgress = false;
             }
         }
 
@@ -134,7 +155,12 @@ namespace MiddleBooth.Services
         public void ProcessPaymentNotification(string notificationJson)
         {
             Log.Information("Processing payment notification: {NotificationJson}", notificationJson);
-            var notification = JsonSerializer.Deserialize<MidtransNotification>(notificationJson);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+            };
+            var notification = JsonSerializer.Deserialize<MidtransNotification>(notificationJson, options);
             if (notification != null)
             {
                 Log.Information("Payment notification received. Status: {Status}, Order ID: {OrderId}", notification.TransactionStatus, notification.OrderId);
@@ -154,38 +180,96 @@ namespace MiddleBooth.Services
         }
     }
 
-    public class MidtransErrorResponse
-    {
-        public string StatusCode { get; set; } = string.Empty;
-        public string StatusMessage { get; set; } = string.Empty;
-        public string Id { get; set; } = string.Empty;
-    }
-
     public class MidtransResponse
     {
+        [JsonPropertyName("status_code")]
         public string StatusCode { get; set; } = string.Empty;
+
+        [JsonPropertyName("status_message")]
         public string StatusMessage { get; set; } = string.Empty;
+
+        [JsonPropertyName("transaction_id")]
         public string TransactionId { get; set; } = string.Empty;
+
+        [JsonPropertyName("order_id")]
         public string OrderId { get; set; } = string.Empty;
+
+        [JsonPropertyName("merchant_id")]
+        public string MerchantId { get; set; } = string.Empty;
+
+        [JsonPropertyName("gross_amount")]
         public string GrossAmount { get; set; } = string.Empty;
+
+        [JsonPropertyName("currency")]
+        public string Currency { get; set; } = string.Empty;
+
+        [JsonPropertyName("payment_type")]
         public string PaymentType { get; set; } = string.Empty;
+
+        [JsonPropertyName("transaction_time")]
+        public string TransactionTime { get; set; } = string.Empty;
+
+        [JsonPropertyName("transaction_status")]
         public string TransactionStatus { get; set; } = string.Empty;
-        public List<MidtransAction> Actions { get; set; } = [];
+
+        [JsonPropertyName("fraud_status")]
+        public string FraudStatus { get; set; } = string.Empty;
+
+        [JsonPropertyName("actions")]
+        public List<MidtransAction> Actions { get; set; } = new List<MidtransAction>();
+
+        [JsonPropertyName("expiry_time")]
+        public string ExpiryTime { get; set; } = string.Empty;
     }
 
     public class MidtransAction
     {
+        [JsonPropertyName("name")]
         public string Name { get; set; } = string.Empty;
+
+        [JsonPropertyName("method")]
         public string Method { get; set; } = string.Empty;
+
+        [JsonPropertyName("url")]
         public string Url { get; set; } = string.Empty;
     }
 
     public class MidtransNotification
     {
+        [JsonPropertyName("transaction_status")]
         public string TransactionStatus { get; set; } = string.Empty;
+
+        [JsonPropertyName("transaction_id")]
+        public string TransactionId { get; set; } = string.Empty;
+
+        [JsonPropertyName("order_id")]
         public string OrderId { get; set; } = string.Empty;
+
+        [JsonPropertyName("payment_type")]
         public string PaymentType { get; set; } = string.Empty;
+
+        [JsonPropertyName("gross_amount")]
         public string GrossAmount { get; set; } = string.Empty;
+
+        [JsonPropertyName("transaction_time")]
         public string TransactionTime { get; set; } = string.Empty;
+
+        [JsonPropertyName("status_code")]
+        public string StatusCode { get; set; } = string.Empty;
+
+        [JsonPropertyName("status_message")]
+        public string StatusMessage { get; set; } = string.Empty;
+
+        [JsonPropertyName("settlement_time")]
+        public string SettlementTime { get; set; } = string.Empty;
+
+        [JsonPropertyName("signature_key")]
+        public string SignatureKey { get; set; } = string.Empty;
+
+        [JsonPropertyName("fraud_status")]
+        public string FraudStatus { get; set; } = string.Empty;
+
+        [JsonPropertyName("currency")]
+        public string Currency { get; set; } = string.Empty;
     }
 }

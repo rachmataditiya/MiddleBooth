@@ -5,30 +5,73 @@
              xmlns:local="clr-namespace:MiddleBooth.Views">
 
     <Grid Background="White">
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20">
-            <TextBlock Text="Select Payment Method" 
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="MediumSeaGreen" Padding="20">
+            <TextBlock Text="Pilih Metode Pembayaran" 
                        FontSize="36" 
                        FontWeight="Bold" 
-                       Foreground="MediumSeaGreen" 
-                       Margin="0,0,0,30"/>
+                       Foreground="White" 
+                       HorizontalAlignment="Center"/>
+        </Border>
 
-            <Button Content="QRIS Payment" 
+        <!-- Main Content -->
+        <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20">
+            <Button Content="Pembayaran QRIS" 
                     Command="{Binding QrisPaymentCommand}" 
                     Style="{StaticResource LargeButtonStyle}" 
-                    Width="300" Height="100" 
-                    Margin="0,20"/>
+                    Width="350" Height="120" 
+                    Margin="0,20"
+                    Background="#4CAF50">
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="QrcodeScan" Width="40" Height="40" Margin="0,0,20,0"/>
+                            <TextBlock Text="{Binding}" FontSize="24" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+            </Button>
 
-            <Button Content="Voucher Payment" 
+            <Button Content="Pembayaran Voucher" 
                     Command="{Binding VoucherPaymentCommand}" 
                     Style="{StaticResource LargeButtonStyle}" 
-                    Width="300" Height="100" 
-                    Margin="0,20"/>
+                    Width="350" Height="120" 
+                    Margin="0,20"
+                    Background="#2196F3">
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Ticket" Width="40" Height="40" Margin="0,0,20,0"/>
+                            <TextBlock Text="{Binding}" FontSize="24" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+            </Button>
 
-            <Button Content="Back" 
+            <Button Content="Kembali" 
                     Command="{Binding BackCommand}" 
                     Style="{StaticResource LargeButtonStyle}" 
-                    Width="200" Height="50" 
-                    Margin="0,30"/>
+                    Width="200" Height="60" 
+                    Margin="0,40,0,0"
+                    Background="#FF5722"/>
         </StackPanel>
+
+        <!-- Footer -->
+        <Border Grid.Row="2" Background="#F5F5F5" Padding="20">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <!-- Placeholder untuk logo pembayaran -->
+                <Image Source="/Resources/qris_logo.png" Width="60" Height="30" Margin="10"/>
+                <Image Source="/Resources/visa_logo.png" Width="60" Height="30" Margin="10"/>
+                <Image Source="/Resources/mastercard_logo.png" Width="60" Height="30" Margin="10"/>
+                <Image Source="/Resources/bank_logo.png" Width="60" Height="30" Margin="10"/>
+                <!-- Tambahkan logo lainnya sesuai kebutuhan -->
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>

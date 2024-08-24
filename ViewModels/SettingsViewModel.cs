@@ -1,6 +1,8 @@
 ﻿using MiddleBooth.Services.Interfaces;
 using MiddleBooth.Utilities;
 using Microsoft.Win32;
+using System;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace MiddleBooth.ViewModels
@@ -92,6 +94,20 @@ namespace MiddleBooth.ViewModels
             }
         }
 
+        private bool _isNotificationVisible;
+        public bool IsNotificationVisible
+        {
+            get => _isNotificationVisible;
+            set => SetProperty(ref _isNotificationVisible, value);
+        }
+
+        private string _notificationMessage = string.Empty;
+        public string NotificationMessage
+        {
+            get => _notificationMessage;
+            set => SetProperty(ref _notificationMessage, value);
+        }
+
         public SettingsViewModel(ISettingsService settingsService, INavigationService navigationService)
         {
             _settingsService = settingsService;
@@ -127,7 +143,24 @@ namespace MiddleBooth.ViewModels
 
         private void SaveSettings(object? parameter)
         {
-            // Implement logic to save settings if needed
+            // Save settings
+            _settingsService.SetDSLRBoothPath(DSLRBoothPath);
+            _settingsService.SetPaymentGatewayUrl(PaymentGatewayUrl);
+            _settingsService.SetServicePrice(ServicePrice);
+            _settingsService.SetApplicationPin(ApplicationPin);
+            _settingsService.SetProduction(IsProduction);
+            _settingsService.SetMidtransServerKey(MidtransServerKey);
+
+            // Show notification
+            NotificationMessage = "Pengaturan berhasil disimpan!";
+            IsNotificationVisible = true;
+
+            // Hide notification after 3 seconds
+            Task.Delay(3000).ContinueWith(_ =>
+            {
+                IsNotificationVisible = false;
+                NotificationMessage = string.Empty;
+            }, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
         private void NavigateBack()

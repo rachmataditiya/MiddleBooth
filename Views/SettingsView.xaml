@@ -7,6 +7,7 @@
     <Grid Background="White">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -20,8 +21,20 @@
                    HorizontalAlignment="Center"
                    Margin="0,30,0,20"/>
 
+        <!-- Notification Area -->
+        <Border Grid.Row="1" 
+                Background="LightGreen" 
+                Visibility="{Binding IsNotificationVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                Padding="10" 
+                Margin="0,0,0,20">
+            <TextBlock Text="{Binding NotificationMessage}" 
+                       FontSize="18" 
+                       Foreground="DarkGreen" 
+                       HorizontalAlignment="Center"/>
+        </Border>
+
         <!-- Main Content -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="40,0">
                 <!-- DSLR Booth Path -->
                 <TextBlock Text="DSLR Booth Path" FontSize="18" Margin="0,20,0,5"/>
@@ -74,21 +87,23 @@
         </ScrollViewer>
 
         <!-- Footer -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,30">
-            <Button Command="{Binding SaveSettingsCommand}" 
-                    Content="Simpan" 
-                    Style="{StaticResource LargeButtonStyle}" 
-                    Background="MediumSeaGreen" 
-                    Width="150" 
-                    Height="50" 
-                    Margin="0,0,20,0"/>
+        <Grid Grid.Row="3" Background="WhiteSmoke">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,30">
+                <Button Command="{Binding SaveSettingsCommand}" 
+                        Content="Simpan" 
+                        Style="{StaticResource LargeButtonStyle}" 
+                        Background="MediumSeaGreen" 
+                        Width="150" 
+                        Height="50" 
+                        Margin="0,0,20,0"/>
 
-            <Button Command="{Binding BackCommand}" 
-                    Content="Kembali" 
-                    Style="{StaticResource LargeButtonStyle}" 
-                    Background="Tomato" 
-                    Width="150" 
-                    Height="50"/>
-        </StackPanel>
+                <Button Command="{Binding BackCommand}" 
+                        Content="Kembali" 
+                        Style="{StaticResource LargeButtonStyle}" 
+                        Background="Tomato" 
+                        Width="150" 
+                        Height="50"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>
