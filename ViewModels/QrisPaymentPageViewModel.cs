@@ -1,4 +1,6 @@
-﻿using MiddleBooth.Services.Interfaces;
+﻿// File: ViewModels/QrisPaymentPageViewModel.cs
+
+using MiddleBooth.Services.Interfaces;
 using MiddleBooth.Utilities;
 using System;
 using System.Windows;
@@ -13,6 +15,7 @@ namespace MiddleBooth.ViewModels
     {
         private readonly INavigationService _navigationService;
         private readonly IPaymentService _paymentService;
+        private readonly IDSLRBoothService _dslrBoothService;
 
         public ICommand BackCommand { get; }
 
@@ -51,10 +54,11 @@ namespace MiddleBooth.ViewModels
             set => SetProperty(ref _notificationMessage, value);
         }
 
-        public QrisPaymentPageViewModel(INavigationService navigationService, IPaymentService paymentService)
+        public QrisPaymentPageViewModel(INavigationService navigationService, IPaymentService paymentService, IDSLRBoothService dslrBoothService)
         {
             _navigationService = navigationService;
             _paymentService = paymentService;
+            _dslrBoothService = dslrBoothService;
 
             BackCommand = new RelayCommand(_ => _navigationService.NavigateTo("MainView"));
 
@@ -95,22 +99,60 @@ namespace MiddleBooth.ViewModels
             }
         }
 
-        private void HandlePaymentNotification(string status)
+        private async void HandlePaymentNotification(string status)
         {
             Log.Information($"Payment notification received in ViewModel: {status}");
 
-            Application.Current.Dispatcher.Invoke(() =>
+            await Application.Current.Dispatcher.InvokeAsync(async () =>
             {
                 Log.Information("Memperbarui status pembayaran di UI.");
                 UpdatePaymentStatus(status);
                 ShowNotification($"Status pembayaran: {PaymentStatus}");
 
-                // Jika pembayaran berhasil, pindah ke halaman utama
                 if (status.ToLower().Trim() == "settlement")
                 {
-                    _navigationService.NavigateTo("MainView");
+                    await HandleSuccessfulPayment();
                 }
             });
+        }
+
+        private async Task HandleSuccessfulPayment()
+        {
+            try
+            {
+                if (_dslrBoothService.IsDSLRBoothRunning())
+                {
+                    await _dslrBoothService.SetDSLRBoothTopmost(true);
+                    Log.Information("DSLRBooth set to topmost after successful payment");
+                }
+                else
+                {
+                    bool launched = await _dslrBoothService.LaunchDSLRBooth();
+                    if (launched)
+                    {
+                        await _dslrBoothService.SetDSLRBoothTopmost(true);
+                        Log.Information("DSLRBooth launched and set to topmost after successful payment");
+                    }
+                    else
+                    {
+                        Log.Warning("Failed to launch DSLRBooth after successful payment");
+                        ShowNotification("Pembayaran berhasil, tapi gagal menjalankan DSLRBooth. Silakan cek pengaturan.");
+                    }
+                }
+
+                // Set MiddleBooth window to not topmost
+                if (Application.Current.MainWindow is MainWindow mainWindow)
+                {
+                    mainWindow.SetTopmost(false);
+                }
+
+                _navigationService.NavigateTo("MainView");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error occurred while handling successful payment");
+                ShowNotification("Terjadi kesalahan saat memproses pembayaran. Silakan hubungi administrator.");
+            }
         }
 
         private void UpdatePaymentStatus(string status)

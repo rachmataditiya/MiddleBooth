@@ -1,7 +1,10 @@
-﻿using MiddleBooth.Services.Interfaces;
+﻿// File: ViewModels/MainViewModel.cs
+
+using MiddleBooth.Services.Interfaces;
 using MiddleBooth.Utilities;
 using System;
 using System.Windows.Input;
+using System.Threading.Tasks;
 
 namespace MiddleBooth.ViewModels
 {
@@ -9,6 +12,7 @@ namespace MiddleBooth.ViewModels
     {
         private readonly ISettingsService _settingsService;
         private readonly INavigationService _navigationService;
+        private readonly IDSLRBoothService _dslrBoothService;
 
         public ICommand OpenSettingsCommand { get; }
         public ICommand ExitCommand { get; }
@@ -30,10 +34,11 @@ namespace MiddleBooth.ViewModels
 
         public KeypadViewModel KeypadViewModel { get; }
 
-        public MainViewModel(ISettingsService settingsService, INavigationService navigationService)
+        public MainViewModel(ISettingsService settingsService, INavigationService navigationService, IDSLRBoothService dslrBoothService)
         {
             _settingsService = settingsService;
             _navigationService = navigationService;
+            _dslrBoothService = dslrBoothService;
 
             OpenSettingsCommand = new RelayCommand(_ => ShowKeypad("Settings"));
             ExitCommand = new RelayCommand(_ => ShowKeypad("Exit"));
@@ -41,6 +46,35 @@ namespace MiddleBooth.ViewModels
 
             KeypadViewModel = new KeypadViewModel();
             KeypadViewModel.PinEntered += OnPinEntered;
+
+            CheckDSLRBoothStatus();
+        }
+
+        private async void CheckDSLRBoothStatus()
+        {
+            if (_dslrBoothService.CheckDSLRBoothPath())
+            {
+                if (!_dslrBoothService.IsDSLRBoothRunning())
+                {
+                    bool launched = await _dslrBoothService.LaunchDSLRBooth();
+                    if (launched)
+                    {
+                        await _dslrBoothService.SetDSLRBoothTopmost(false);
+                    }
+                    else
+                    {
+                        // Handle launch failure (e.g., show a message to the user)
+                    }
+                }
+                else
+                {
+                    await _dslrBoothService.SetDSLRBoothTopmost(false);
+                }
+            }
+            else
+            {
+                // Handle invalid DSLRBooth path (e.g., show a message to the user)
+            }
         }
 
         private void ShowKeypad(string purpose)
