@@ -16,6 +16,7 @@ namespace MiddleBooth.ViewModels
         private readonly INavigationService _navigationService;
         private readonly IPaymentService _paymentService;
         private readonly IDSLRBoothService _dslrBoothService;
+        private readonly IOdooService _odooService;
 
         public ICommand BackCommand { get; }
 
@@ -54,11 +55,12 @@ namespace MiddleBooth.ViewModels
             set => SetProperty(ref _notificationMessage, value);
         }
 
-        public QrisPaymentPageViewModel(INavigationService navigationService, IPaymentService paymentService, IDSLRBoothService dslrBoothService)
+        public QrisPaymentPageViewModel(INavigationService navigationService, IPaymentService paymentService, IDSLRBoothService dslrBoothService, IOdooService odooService)
         {
             _navigationService = navigationService;
             _paymentService = paymentService;
             _dslrBoothService = dslrBoothService;
+            _odooService = odooService;
 
             BackCommand = new RelayCommand(_ => _navigationService.NavigateTo("MainView"));
 
@@ -146,12 +148,40 @@ namespace MiddleBooth.ViewModels
                     mainWindow.SetTopmost(false);
                 }
 
+                // Buat order QRIS secara asinkron
+                _ = Task.Run(CreateQRISOrder);
+
                 _navigationService.NavigateTo("MainView");
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Error occurred while handling successful payment");
                 ShowNotification("Terjadi kesalahan saat memproses pembayaran. Silakan hubungi administrator.");
+            }
+        }
+
+        private async Task CreateQRISOrder()
+        {
+            try
+            {
+                string name = $"BO{DateTime.Now:yyyyMMddHHmmss}";
+                decimal price = _paymentService.GetServicePrice();
+                string saleType = "QRIS";
+                Log.Information($"Creating QRIS booth order: {name}, Price: {price}, Sale Type: {saleType}");
+
+                bool success = await _odooService.CreateBoothOrder(name, DateTime.Now, price, saleType);
+                if (success)
+                {
+                    Log.Information($"QRIS booth order {name} created successfully");
+                }
+                else
+                {
+                    Log.Warning($"Failed to create QRIS booth order {name}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error creating QRIS booth order");
             }
         }
 

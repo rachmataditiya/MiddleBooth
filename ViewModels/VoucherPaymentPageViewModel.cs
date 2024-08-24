@@ -1,7 +1,10 @@
-﻿using MiddleBooth.Services.Interfaces;
+﻿// File: ViewModels/VoucherPaymentPageViewModel.cs
+
+using MiddleBooth.Services.Interfaces;
 using MiddleBooth.Utilities;
 using System;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using Serilog;
 
@@ -12,6 +15,7 @@ namespace MiddleBooth.ViewModels
         private readonly INavigationService _navigationService;
         private readonly IPaymentService _paymentService;
         private readonly IOdooService _odooService;
+        private readonly IDSLRBoothService _dslrBoothService;
 
         public ICommand ValidateVoucherCommand { get; }
         public ICommand BackCommand { get; }
@@ -37,11 +41,12 @@ namespace MiddleBooth.ViewModels
             set => SetProperty(ref _validationResultColor, value);
         }
 
-        public VoucherPaymentPageViewModel(INavigationService navigationService, IPaymentService paymentService, IOdooService odooService)
+        public VoucherPaymentPageViewModel(INavigationService navigationService, IPaymentService paymentService, IOdooService odooService, IDSLRBoothService dslrBoothService)
         {
             _navigationService = navigationService;
             _paymentService = paymentService;
             _odooService = odooService;
+            _dslrBoothService = dslrBoothService;
 
             ValidateVoucherCommand = new RelayCommand(async _ => await ValidateVoucherAsync());
             BackCommand = new RelayCommand(_ => _navigationService.NavigateTo("PaymentOptionsPage"));
@@ -61,6 +66,7 @@ namespace MiddleBooth.ViewModels
                     ValidationResult = "Voucher Valid!";
                     ValidationResultColor = "Green";
                     await CreateBoothOrder();
+                    await LaunchDSLRBooth();
                 }
                 else
                 {
@@ -83,7 +89,7 @@ namespace MiddleBooth.ViewModels
             {
                 string name = $"BO{DateTime.Now:yyyyMMddHHmmss}";
                 decimal price = _paymentService.GetServicePrice();
-                string saleType = "Voucher"; // Tipe penjualan untuk voucher
+                string saleType = "Voucher";
                 Log.Information($"Creating booth order: {name}, Price: {price}, Sale Type: {saleType}");
 
                 bool success = await _odooService.CreateBoothOrder(name, DateTime.Now, price, saleType);
@@ -92,8 +98,6 @@ namespace MiddleBooth.ViewModels
                     Log.Information($"Booth order {name} created successfully");
                     ValidationResult = "Order berhasil dibuat!";
                     ValidationResultColor = "Green";
-                    await Task.Delay(3000); // Memberikan waktu untuk user melihat pesan sukses
-                    _navigationService.NavigateTo("MainView");
                 }
                 else
                 {
@@ -110,5 +114,46 @@ namespace MiddleBooth.ViewModels
             }
         }
 
+        private async Task LaunchDSLRBooth()
+        {
+            try
+            {
+                if (_dslrBoothService.IsDSLRBoothRunning())
+                {
+                    await _dslrBoothService.SetDSLRBoothTopmost(true);
+                    Log.Information("DSLRBooth set to topmost after successful voucher validation");
+                }
+                else
+                {
+                    bool launched = await _dslrBoothService.LaunchDSLRBooth();
+                    if (launched)
+                    {
+                        await _dslrBoothService.SetDSLRBoothTopmost(true);
+                        Log.Information("DSLRBooth launched and set to topmost after successful voucher validation");
+                    }
+                    else
+                    {
+                        Log.Warning("Failed to launch DSLRBooth after successful voucher validation");
+                        ValidationResult = "Voucher valid, tapi gagal menjalankan DSLRBooth. Silakan cek pengaturan.";
+                        ValidationResultColor = "Orange";
+                    }
+                }
+
+                // Set MiddleBooth window to not topmost
+                if (Application.Current.MainWindow is MainWindow mainWindow)
+                {
+                    mainWindow.SetTopmost(false);
+                }
+
+                await Task.Delay(3000); // Memberikan waktu untuk user melihat pesan sukses
+                _navigationService.NavigateTo("MainView");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error occurred while launching DSLRBooth");
+                ValidationResult = "Terjadi kesalahan saat menjalankan DSLRBooth. Silakan hubungi administrator.";
+                ValidationResultColor = "Red";
+            }
+        }
     }
 }

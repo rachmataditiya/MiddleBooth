@@ -44,8 +44,8 @@ namespace MiddleBooth
             {
                 "SettingsView" => new SettingsView(new SettingsViewModel(_settingsService, _navigationService)),
                 "PaymentOptionsPage" => new PaymentOptionsPage(new PaymentOptionsPageViewModel(_navigationService, _paymentService)),
-                "QrisPaymentPage" => new QrisPaymentPage(new QrisPaymentPageViewModel(_navigationService, _paymentService, _dslrBoothService)),
-                "VoucherPaymentPage" => new VoucherPaymentPage(new VoucherPaymentPageViewModel(_navigationService, _paymentService, _odooService)),
+                "QrisPaymentPage" => new QrisPaymentPage(new QrisPaymentPageViewModel(_navigationService, _paymentService, _dslrBoothService, _odooService)),
+                "VoucherPaymentPage" => new VoucherPaymentPage(new VoucherPaymentPageViewModel(_navigationService, _paymentService, _odooService, _dslrBoothService)),
                 _ => new MainView(_settingsService, _navigationService, _dslrBoothService)
             };
         }
