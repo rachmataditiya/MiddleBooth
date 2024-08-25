@@ -17,6 +17,7 @@ namespace MiddleBooth.ViewModels
         private readonly IPaymentService _paymentService;
         private readonly IDSLRBoothService _dslrBoothService;
         private readonly IOdooService _odooService;
+        private readonly IWebServerService _webServerService;
 
         public ICommand BackCommand { get; }
 
@@ -55,20 +56,32 @@ namespace MiddleBooth.ViewModels
             set => SetProperty(ref _notificationMessage, value);
         }
 
-        public QrisPaymentPageViewModel(INavigationService navigationService, IPaymentService paymentService, IDSLRBoothService dslrBoothService, IOdooService odooService)
+        public QrisPaymentPageViewModel(INavigationService navigationService, IPaymentService paymentService, IDSLRBoothService dslrBoothService, IOdooService odooService, IWebServerService webServerService)
         {
             _navigationService = navigationService;
             _paymentService = paymentService;
             _dslrBoothService = dslrBoothService;
             _odooService = odooService;
+            _webServerService = webServerService;
 
             BackCommand = new RelayCommand(_ => _navigationService.NavigateTo("MainView"));
 
             _paymentService.OnPaymentNotificationReceived += HandlePaymentNotification;
-
+            _webServerService.TriggerReceived += OnTriggerReceived;
             Task.Run(StartQrisPayment);
         }
-
+        private async void OnTriggerReceived(object? sender, DSLRBoothEvent e)
+        {
+            if (e.EventType == "session_end")
+            {
+                Log.Information("DSLRBooth session ended. Navigating to MainView.");
+                await _dslrBoothService.SetDSLRBoothVisibility(false);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    _navigationService.NavigateTo("MainView");
+                });
+            }
+        }
         private async Task StartQrisPayment()
         {
             try
@@ -113,19 +126,20 @@ namespace MiddleBooth.ViewModels
 
                 if (status.ToLower().Trim() == "settlement")
                 {
-                    await HandleSuccessfulPayment();
+                    await CreateQRISOrder();
+                    await LaunchDSLRBooth();
                 }
             });
         }
 
-        private async Task HandleSuccessfulPayment()
+        private async Task LaunchDSLRBooth()
         {
             try
             {
                 if (_dslrBoothService.IsDSLRBoothRunning())
                 {
                     await _dslrBoothService.SetDSLRBoothVisibility(true);
-                    Log.Information("DSLRBooth set to topmost after successful payment");
+                    Log.Information("DSLRBooth set to visible after successful voucher validation");
                 }
                 else
                 {
@@ -133,31 +147,22 @@ namespace MiddleBooth.ViewModels
                     if (launched)
                     {
                         await _dslrBoothService.SetDSLRBoothVisibility(true);
-                        Log.Information("DSLRBooth launched and set to topmost after successful payment");
+                        Log.Information("DSLRBooth launched and set to visible after successful voucher validation");
                     }
                     else
                     {
-                        Log.Warning("Failed to launch DSLRBooth after successful payment");
-                        ShowNotification("Pembayaran berhasil, tapi gagal menjalankan DSLRBooth. Silakan cek pengaturan.");
+                        Log.Warning("Failed to launch DSLRBooth after successful voucher validation");
+                        PaymentStatus = "Voucher valid, tapi gagal menjalankan DSLRBooth. Silakan cek pengaturan.";
+                        PaymentStatusColor = "Orange";
                         return;
                     }
                 }
-
-                // Set MiddleBooth window to not topmost
-                if (Application.Current.MainWindow is MainWindow mainWindow)
-                {
-                    mainWindow.SetVisibility(true);
-                }
-
-                // Buat order QRIS secara asinkron
-                await CreateQRISOrder();
-
-                _navigationService.NavigateTo("MainView");
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Error occurred while handling successful payment");
-                ShowNotification("Terjadi kesalahan saat memproses pembayaran. Silakan hubungi administrator.");
+                Log.Error(ex, "Error occurred while launching DSLRBooth");
+                PaymentStatus = "Terjadi kesalahan saat menjalankan DSLRBooth. Silakan hubungi administrator.";
+                PaymentStatusColor = "Red";
             }
         }
 
