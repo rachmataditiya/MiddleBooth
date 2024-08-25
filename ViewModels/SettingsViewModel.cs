@@ -147,6 +147,57 @@ namespace MiddleBooth.ViewModels
                 }
             }
         }
+        private string _mqttHost = string.Empty;
+        public string MqttHost
+        {
+            get => _mqttHost;
+            set
+            {
+                if (SetProperty(ref _mqttHost, value))
+                {
+                    _settingsService.SetMqttHost(value);
+                }
+            }
+        }
+
+        private int _mqttPort;
+        public int MqttPort
+        {
+            get => _mqttPort;
+            set
+            {
+                if (SetProperty(ref _mqttPort, value))
+                {
+                    _settingsService.SetMqttPort(value);
+                }
+            }
+        }
+
+        private string _mqttUsername = string.Empty;
+        public string MqttUsername
+        {
+            get => _mqttUsername;
+            set
+            {
+                if (SetProperty(ref _mqttUsername, value))
+                {
+                    _settingsService.SetMqttUsername(value);
+                }
+            }
+        }
+
+        private string _mqttPassword = string.Empty;
+        public string MqttPassword
+        {
+            get => _mqttPassword;
+            set
+            {
+                if (SetProperty(ref _mqttPassword, value))
+                {
+                    _settingsService.SetMqttPassword(value);
+                }
+            }
+        }
 
         private bool _isNotificationVisible;
         public bool IsNotificationVisible
@@ -178,6 +229,10 @@ namespace MiddleBooth.ViewModels
             OdooUsername = _settingsService.GetOdooUsername();
             OdooPassword = _settingsService.GetOdooPassword();
             OdooDatabase = _settingsService.GetOdooDatabase();
+            MqttHost = _settingsService.GetMqttHost();
+            MqttPort = _settingsService.GetMqttPort();
+            MqttUsername = _settingsService.GetMqttUsername();
+            MqttPassword = _settingsService.GetMqttPassword();
 
             // Commands
             SaveSettingsCommand = new RelayCommand(SaveSettings);
@@ -212,6 +267,10 @@ namespace MiddleBooth.ViewModels
             _settingsService.SetOdooUsername(OdooUsername);
             _settingsService.SetOdooPassword(OdooPassword);
             _settingsService.SetOdooDatabase(OdooDatabase);
+            _settingsService.SetMqttHost(MqttHost);
+            _settingsService.SetMqttPort(MqttPort);
+            _settingsService.SetMqttUsername(MqttUsername);
+            _settingsService.SetMqttPassword(MqttPassword);
 
             // Show notification
             NotificationMessage = "Pengaturan berhasil disimpan!";

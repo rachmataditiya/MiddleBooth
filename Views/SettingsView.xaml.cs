@@ -25,5 +25,12 @@ namespace MiddleBooth.Views
                 viewModel.OdooPassword = passwordBox.Password;
             }
         }
+        private void MqttPasswordBox_PasswordChanged(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (DataContext is SettingsViewModel viewModel && sender is PasswordBox passwordBox)
+            {
+                viewModel.MqttPassword = passwordBox.Password;
+            }
+        }
     }
 }

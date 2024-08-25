@@ -36,6 +36,9 @@ namespace MiddleBooth
             // Check and launch DSLRBooth if necessary
             var dslrBoothService = ServiceProvider.GetRequiredService<IDSLRBoothService>();
             CheckAndLaunchDSLRBooth(dslrBoothService);
+
+            var mqttClientService = ServiceProvider.GetRequiredService<IMqttClientService>();
+            _ = mqttClientService.StartAsync(CancellationToken.None);
         }
 
         private static void ConfigureServices(IServiceCollection services)
@@ -46,6 +49,7 @@ namespace MiddleBooth
             services.AddSingleton<IPaymentService, PaymentService>();
             services.AddSingleton<IDSLRBoothService, DSLRBoothService>();
             services.AddSingleton<IOdooService, OdooService>();
+            services.AddSingleton<IMqttClientService, MqttClientService>();
 
             // Tambahkan logging ke DI
             services.AddLogging(loggingBuilder =>
@@ -85,6 +89,11 @@ namespace MiddleBooth
 
         protected override void OnExit(ExitEventArgs e)
         {
+            if (ServiceProvider != null)
+            {
+                var mqttClientService = ServiceProvider.GetRequiredService<IMqttClientService>();
+                _ = mqttClientService.StopAsync(CancellationToken.None);
+            }
             Log.Information("Application Exiting");
             Log.CloseAndFlush();
             base.OnExit(e);

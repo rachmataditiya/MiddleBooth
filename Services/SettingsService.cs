@@ -114,7 +114,45 @@ namespace MiddleBooth.Services
         {
             UpdateSetting("OdooDatabase", database);
         }
+        public string GetMqttHost()
+        {
+            return ConfigurationManager.AppSettings["MqttHost"] ?? "y1c4d1ec.ala.asia-southeast1.emqxsl.com";
+        }
 
+        public void SetMqttHost(string host)
+        {
+            UpdateSetting("MqttHost", host);
+        }
+
+        public int GetMqttPort()
+        {
+            return int.Parse(ConfigurationManager.AppSettings["MqttPort"] ?? "8883");
+        }
+
+        public void SetMqttPort(int port)
+        {
+            UpdateSetting("MqttPort", port.ToString());
+        }
+
+        public string GetMqttUsername()
+        {
+            return ConfigurationManager.AppSettings["MqttUsername"] ?? "sedari";
+        }
+
+        public void SetMqttUsername(string username)
+        {
+            UpdateSetting("MqttUsername", username);
+        }
+
+        public string GetMqttPassword()
+        {
+            return ConfigurationManager.AppSettings["MqttPassword"] ?? "@mpera50A";
+        }
+
+        public void SetMqttPassword(string password)
+        {
+            UpdateSetting("MqttPassword", password);
+        }
         private static void UpdateSetting(string key, string value)
         {
             Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);

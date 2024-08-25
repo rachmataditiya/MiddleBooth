@@ -23,5 +23,13 @@
         void SetOdooPassword(string password);
         string GetOdooDatabase();
         void SetOdooDatabase(string database);
+        string GetMqttHost();
+        void SetMqttHost(string host);
+        int GetMqttPort();
+        void SetMqttPort(int port);
+        string GetMqttUsername();
+        void SetMqttUsername(string username);
+        string GetMqttPassword();
+        void SetMqttPassword(string password);
     }
 }
