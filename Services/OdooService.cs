@@ -34,7 +34,7 @@ namespace MiddleBooth.Services
             {
                 new JArray
                 {
-                    new JArray("x_studio_char_field_7to_1i61dpv6b", "=", voucherCode),
+                    new JArray("x_studio_voucher_code", "=", voucherCode),
                     new JArray("x_studio_used", "=", false)
                 }
             };
@@ -93,7 +93,7 @@ namespace MiddleBooth.Services
         new JObject
         {
             ["x_name"] = name,
-            ["x_studio_datetime_field_9u_1i61il3mm"] = gmtSaleDate.ToString("yyyy-MM-dd HH:mm:ss"),
+            ["x_studio_tanggal_penjualan"] = gmtSaleDate.ToString("yyyy-MM-dd HH:mm:ss"),
             ["x_studio_harga"] = price,
             ["x_studio_tipe_penjualan"] = saleType
         }
@@ -116,7 +116,7 @@ namespace MiddleBooth.Services
         }
 
 
-        private async Task<T> ExecuteKw<T>(string model, string method, JArray args)
+        private async Task<T?> ExecuteKw<T>(string model, string method, JArray args)
         {
             Log.Debug($"Executing Odoo method: {model}.{method}");
             var uid = await GetUid();
@@ -129,14 +129,14 @@ namespace MiddleBooth.Services
                     ["service"] = "object",
                     ["method"] = "execute_kw",
                     ["args"] = new JArray
-                                    {
-                                        _connection.Database,
-                                        uid,
-                                        _connection.Password,
-                                        model,
-                                        method,
-                                        args
-                                    }
+            {
+                _connection.Database,
+                uid,
+                _connection.Password,
+                model,
+                method,
+                args
+            }
                 }
             };
 
@@ -148,8 +148,8 @@ namespace MiddleBooth.Services
                 if (response.ContainsKey("error"))
                 {
                     var error = response["error"];
-                    Log.Error($"Odoo error: {error["message"]}, Data: {error["data"]["message"]}");
-                    throw new Exception($"Odoo error: {error["message"]}");
+                    Log.Error($"Odoo error: {error?["message"]}, Data: {error?["data"]?["message"]}");
+                    throw new Exception($"Odoo error: {error?["message"]}");
                 }
 
                 var result = response["result"];
@@ -159,7 +159,7 @@ namespace MiddleBooth.Services
                     return result.Value<T>();
                 }
                 Log.Warning($"Odoo method {model}.{method} returned null result");
-                return default(T)!;
+                return default;
             }
             catch (Exception ex)
             {
@@ -167,7 +167,6 @@ namespace MiddleBooth.Services
                 throw;
             }
         }
-
         private async Task<int> GetUid()
         {
             if (_uid.HasValue)

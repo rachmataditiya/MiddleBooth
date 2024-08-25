@@ -17,16 +17,19 @@ namespace MiddleBooth.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ISettingsService _settingsService;
-        private readonly INavigationService _navigationService;
-
         private bool _isRequestInProgress;
+
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
 
         public event Action<string> OnPaymentNotificationReceived = delegate { };
 
-        public PaymentService(ISettingsService settingsService, INavigationService navigationService)
+        public PaymentService(ISettingsService settingsService)
         {
             _settingsService = settingsService;
-            _navigationService = navigationService;
             _httpClient = new HttpClient
             {
                 BaseAddress = new Uri(_settingsService.GetMidtransBaseUrl())
@@ -78,42 +81,28 @@ namespace MiddleBooth.Services
                 var content = await response.Content.ReadAsStringAsync();
                 Log.Information("Received response: {Content}", content);
 
-                var options = new JsonSerializerOptions
+                var result = JsonSerializer.Deserialize<MidtransResponse>(content, _jsonSerializerOptions);
+
+                if (result == null)
                 {
-                    PropertyNameCaseInsensitive = true,
-                    PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
-                };
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = JsonSerializer.Deserialize<MidtransResponse>(content, options);
-
-                    if (result == null)
-                    {
-                        Log.Error("Failed to deserialize Midtrans response");
-                        return string.Empty;
-                    }
-
-                    Log.Information("Deserialized response: {@Result}", result);
-
-                    if (result.StatusCode == "201")
-                    {
-                        var qrCodeUrl = result.Actions?.FirstOrDefault(a => a.Name == "generate-qr-code")?.Url ?? string.Empty;
-                        if (!string.IsNullOrEmpty(qrCodeUrl))
-                        {
-                            Log.Information("QR code generated successfully: {QRCodeUrl}", qrCodeUrl);
-                            return qrCodeUrl;
-                        }
-                    }
-
-                    Log.Error("Unexpected status code from Midtrans: {StatusCode}. Message: {StatusMessage}",
-                              result.StatusCode, result.StatusMessage);
+                    Log.Error("Failed to deserialize Midtrans response");
+                    return string.Empty;
                 }
-                else
+
+                Log.Information("Deserialized response: {@Result}", result);
+
+                if (result.StatusCode == "201")
                 {
-                    Log.Error("Failed to generate QR code. Status code: {StatusCode}, Reason: {ReasonPhrase}, Response: {Content}",
-                              response.StatusCode, response.ReasonPhrase, content);
+                    var qrCodeUrl = result.Actions?.FirstOrDefault(a => a.Name == "generate-qr-code")?.Url ?? string.Empty;
+                    if (!string.IsNullOrEmpty(qrCodeUrl))
+                    {
+                        Log.Information("QR code generated successfully: {QRCodeUrl}", qrCodeUrl);
+                        return qrCodeUrl;
+                    }
                 }
+
+                Log.Error("Unexpected status code from Midtrans: {StatusCode}. Message: {StatusMessage}",
+                          result.StatusCode, result.StatusMessage);
 
                 return string.Empty;
             }
@@ -130,46 +119,41 @@ namespace MiddleBooth.Services
 
         public void ProcessPaymentNotification(string notificationJson)
         {
-            Log.Information("Memproses notifikasi pembayaran: {NotificationJson}", notificationJson);
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
+            Log.Information("Processing payment notification: {NotificationJson}", notificationJson);
 
-            var notification = JsonSerializer.Deserialize<MidtransNotification>(notificationJson, options);
+            var notification = JsonSerializer.Deserialize<MidtransNotification>(notificationJson, _jsonSerializerOptions);
 
             if (notification != null)
             {
                 var computedSignatureKey = ComputeSignature(notification);
                 if (computedSignatureKey != notification.SignatureKey)
                 {
-                    Log.Warning("Verifikasi signature key gagal.");
+                    Log.Warning("Signature key verification failed.");
                     return;
                 }
 
                 switch (notification.TransactionStatus)
                 {
                     case "settlement":
-                        Log.Information("Pembayaran berhasil diselesaikan untuk Order ID: {OrderId}", notification.OrderId);
+                        Log.Information("Payment settled for Order ID: {OrderId}", notification.OrderId);
                         OnPaymentNotificationReceived?.Invoke("settlement");
                         break;
                     case "pending":
-                        Log.Information("Pembayaran tertunda untuk Order ID: {OrderId}", notification.OrderId);
+                        Log.Information("Payment pending for Order ID: {OrderId}", notification.OrderId);
                         OnPaymentNotificationReceived?.Invoke("pending");
                         break;
                     case "expire":
-                        Log.Information("Pembayaran kedaluwarsa untuk Order ID: {OrderId}", notification.OrderId);
+                        Log.Information("Payment expired for Order ID: {OrderId}", notification.OrderId);
                         OnPaymentNotificationReceived?.Invoke("expire");
                         break;
                     default:
-                        Log.Warning("Status transaksi tidak dikenal: {TransactionStatus}", notification.TransactionStatus);
+                        Log.Warning("Unknown transaction status: {TransactionStatus}", notification.TransactionStatus);
                         break;
                 }
             }
             else
             {
-                Log.Warning("Gagal mendeserialisasi notifikasi pembayaran.");
+                Log.Warning("Failed to deserialize payment notification.");
             }
         }
 
@@ -178,11 +162,8 @@ namespace MiddleBooth.Services
             var merchantServerKey = _settingsService.GetMidtransServerKey();
             var signatureFields = $"{notification.OrderId}{notification.StatusCode}{notification.GrossAmount}{merchantServerKey}";
 
-            using (var sha512 = SHA512.Create())
-            {
-                var hashBytes = sha512.ComputeHash(Encoding.UTF8.GetBytes(signatureFields));
-                return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
-            }
+            var hashBytes = SHA512.HashData(Encoding.UTF8.GetBytes(signatureFields));
+            return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
         }
 
         public decimal GetServicePrice()
@@ -229,7 +210,7 @@ namespace MiddleBooth.Services
         public string FraudStatus { get; set; } = string.Empty;
 
         [JsonPropertyName("actions")]
-        public List<MidtransAction> Actions { get; set; } = new List<MidtransAction>();
+        public List<MidtransAction> Actions { get; set; } = [];
 
         [JsonPropertyName("expiry_time")]
         public string ExpiryTime { get; set; } = string.Empty;

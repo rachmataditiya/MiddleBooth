@@ -12,8 +12,8 @@ namespace MiddleBooth.Services
         private HttpListener? _listener;
         private bool _isListening = false;
 
-        public event EventHandler<DSLRBoothEvent> TriggerReceived;
-        public event EventHandler<string> PaymentNotificationReceived;
+        public event EventHandler<DSLRBoothEvent>? TriggerReceived;
+        public event EventHandler<string>? PaymentNotificationReceived;
         private readonly IPaymentService _paymentService;
 
         public WebServerService(IPaymentService paymentService)
