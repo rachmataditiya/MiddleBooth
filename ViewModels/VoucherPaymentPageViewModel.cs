@@ -1,6 +1,4 @@
-﻿// File: ViewModels/VoucherPaymentPageViewModel.cs
-
-using MiddleBooth.Services.Interfaces;
+﻿using MiddleBooth.Services.Interfaces;
 using MiddleBooth.Utilities;
 using System;
 using System.Threading.Tasks;
@@ -42,6 +40,34 @@ namespace MiddleBooth.ViewModels
             set => SetProperty(ref _validationResultColor, value);
         }
 
+        private int _discountAmount;
+        public int DiscountAmount
+        {
+            get => _discountAmount;
+            set => SetProperty(ref _discountAmount, value);
+        }
+
+        private decimal _discountedPrice;
+        public decimal DiscountedPrice
+        {
+            get => _discountedPrice;
+            set => SetProperty(ref _discountedPrice, value);
+        }
+
+        private bool _isFullVoucher;
+        public bool IsFullVoucher
+        {
+            get => _isFullVoucher;
+            set => SetProperty(ref _isFullVoucher, value);
+        }
+
+        private bool _isPartialVoucher;
+        public bool IsPartialVoucher
+        {
+            get => _isPartialVoucher;
+            set => SetProperty(ref _isPartialVoucher, value);
+        }
+
         public VoucherPaymentPageViewModel(INavigationService navigationService, IPaymentService paymentService, IOdooService odooService, IDSLRBoothService dslrBoothService, IWebServerService webServerService)
         {
             _navigationService = navigationService;
@@ -76,20 +102,49 @@ namespace MiddleBooth.ViewModels
             Log.Information($"Validating voucher: {VoucherCode}");
             try
             {
-                bool isValid = await _odooService.CheckVoucher(VoucherCode);
-                if (isValid)
+                var voucherDetails = await _odooService.GetVoucherDetails(VoucherCode);
+                if (voucherDetails.IsValid)
                 {
                     Log.Information($"Voucher {VoucherCode} is valid");
-                    ValidationResult = "Voucher Valid!";
+
+                    decimal fullPrice = _paymentService.GetServicePrice();
+                    IsFullVoucher = voucherDetails.VoucherType.ToLower() == "full";
+                    IsPartialVoucher = !IsFullVoucher;
+
+                    switch (voucherDetails.VoucherType.ToLower())
+                    {
+                        case "full":
+                            DiscountAmount = (int)fullPrice;
+                            DiscountedPrice = 0;
+                            ValidationResult = "Voucher Valid! Memulai sesi foto...";
+                            await CreateBoothOrder();
+                            await LaunchDSLRBooth();
+                            break;
+                        case "percentage":
+                            decimal percentage = voucherDetails.TotalDiscount / 100m;
+                            DiscountAmount = (int)(fullPrice * percentage);
+                            DiscountedPrice = Math.Max(fullPrice - DiscountAmount, 0);
+                            ValidationResult = $"Voucher Valid! Diskon: {voucherDetails.TotalDiscount}% (Rp{DiscountAmount:N0}). Melanjutkan ke pembayaran...";
+                            ProceedToPayment();
+                            break;
+                        case "nominal":
+                            DiscountAmount = voucherDetails.TotalDiscount;
+                            DiscountedPrice = Math.Max(fullPrice - DiscountAmount, 0);
+                            ValidationResult = $"Voucher Valid! Diskon: Rp{DiscountAmount:N0}. Melanjutkan ke pembayaran...";
+                            ProceedToPayment();
+                            break;
+                        default:
+                            throw new Exception($"Tipe voucher tidak dikenal: {voucherDetails.VoucherType}");
+                    }
+
                     ValidationResultColor = "Green";
-                    await CreateBoothOrder();
-                    await LaunchDSLRBooth();
                 }
                 else
                 {
                     Log.Warning($"Voucher {VoucherCode} is not valid");
                     ValidationResult = "Kode Voucher Tidak Valid!";
                     ValidationResultColor = "Red";
+                    ResetVoucherState();
                 }
             }
             catch (Exception ex)
@@ -97,6 +152,27 @@ namespace MiddleBooth.ViewModels
                 Log.Error(ex, $"Error validating voucher {VoucherCode}");
                 ValidationResult = $"Error: {ex.Message}";
                 ValidationResultColor = "Red";
+                ResetVoucherState();
+            }
+        }
+
+        private void ResetVoucherState()
+        {
+            IsFullVoucher = false;
+            IsPartialVoucher = false;
+            DiscountAmount = 0;
+            DiscountedPrice = 0;
+        }
+
+        private void ProceedToPayment()
+        {
+            if (IsPartialVoucher)
+            {
+                Log.Information($"Proceeding to QRIS payment for discounted amount: {DiscountedPrice}");
+                _navigationService.NavigateTo("QrisPaymentPage");
+
+                // Menyimpan DiscountedPrice ke properti statis sementara
+                App.Current.Properties["DiscountedPrice"] = DiscountedPrice;
             }
         }
 

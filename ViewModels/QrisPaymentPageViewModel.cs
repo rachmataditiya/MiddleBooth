@@ -1,6 +1,4 @@
-﻿// File: ViewModels/QrisPaymentPageViewModel.cs
-
-using MiddleBooth.Services.Interfaces;
+﻿using MiddleBooth.Services.Interfaces;
 using MiddleBooth.Utilities;
 using System;
 using System.Windows;
@@ -55,6 +53,12 @@ namespace MiddleBooth.ViewModels
             get => _notificationMessage;
             set => SetProperty(ref _notificationMessage, value);
         }
+        private decimal _amount;
+        public decimal Amount
+        {
+            get => _amount;
+            set => SetProperty(ref _amount, value);
+        }
 
         public QrisPaymentPageViewModel(INavigationService navigationService, IPaymentService paymentService, IDSLRBoothService dslrBoothService, IOdooService odooService, IWebServerService webServerService)
         {
@@ -87,6 +91,17 @@ namespace MiddleBooth.ViewModels
             try
             {
                 decimal amount = _paymentService.GetServicePrice();
+
+                // Mengambil DiscountedPrice dari properti aplikasi jika ada
+                if (App.Current.Properties.Contains("DiscountedPrice"))
+                {
+                    var discountedPrice = App.Current.Properties["DiscountedPrice"];
+                    if (discountedPrice is decimal decimalPrice)
+                    {
+                        amount = decimalPrice;
+                    }
+                }
+
                 string qrCodeUrl = await _paymentService.GenerateQRCode(amount);
 
                 Application.Current.Dispatcher.Invoke(() =>
@@ -173,7 +188,17 @@ namespace MiddleBooth.ViewModels
                 string name = $"BO{DateTime.Now:yyyyMMddHHmmss}";
                 decimal price = _paymentService.GetServicePrice();
                 string saleType = "QRIS";
-                Log.Information($"Creating QRIS booth order: {name}, Price: {price}, Sale Type: {saleType}");
+                if (App.Current.Properties.Contains("DiscountedPrice"))
+                {
+                    var discountedPrice = App.Current.Properties["DiscountedPrice"];
+                    if (discountedPrice is decimal decimalPrice)
+                    {
+                        price = decimalPrice;
+                    }
+                    saleType = "Discount";
+                    App.Current.Properties.Remove("DiscountedPrice");
+                    Log.Information($"Creating Odoo order: {name}, Price: {price}, Sale Type: {saleType}");
+                }
 
                 bool success = await _odooService.CreateBoothOrder(name, DateTime.Now, price, saleType);
                 if (success)

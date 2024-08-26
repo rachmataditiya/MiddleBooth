@@ -82,6 +82,81 @@ namespace MiddleBooth.Services
                 throw;
             }
         }
+        public async Task<VoucherDetails> GetVoucherDetails(string voucherCode)
+        {
+            const string VOUCHER_MODEL = "x_voucher_management";
+            Log.Information($"Getting voucher details for: {voucherCode}");
+
+            var searchDomain = new JArray
+            {
+                new JArray("x_studio_voucher_code", "=", voucherCode),
+                new JArray("x_studio_used", "=", false)
+            };
+
+                    var fieldsToRetrieve = new JArray
+            {
+                "x_studio_voucher_code",
+                "x_studio_voucher_type",
+                "x_studio_total_diskon"
+            };
+
+            try
+            {
+                var args = new JArray
+                {
+                    searchDomain,
+                    fieldsToRetrieve
+                };
+
+                var searchResult = await ExecuteKw<JArray>(VOUCHER_MODEL, "search_read", args);
+
+                if (searchResult != null && searchResult.Count > 0)
+                {
+                    var voucherData = searchResult[0] as JObject;
+                    var voucherId = voucherData["id"]?.Value<int>() ?? 0;
+                    if (voucherData != null)
+                    {
+                        var updateArgs = new JArray
+                                            {
+                                                voucherId,
+                                                new JObject
+                                                {
+                                                    ["x_studio_used"] = true
+                                                }
+                                            };
+                        var updateResult = await ExecuteKw<bool>(VOUCHER_MODEL, "write", updateArgs);
+
+                        if (updateResult)
+                        {
+                            Log.Information($"Voucher {voucherCode} marked as used");
+                        }
+                        else
+                        {
+                            Log.Warning($"Failed to mark voucher {voucherCode} as used");
+                        }
+                        return new VoucherDetails
+                        {
+                            VoucherCode = voucherData["x_studio_voucher_code"]?.ToString() ?? string.Empty,
+                            VoucherType = voucherData["x_studio_voucher_type"]?.ToString() ?? string.Empty,
+                            TotalDiscount = voucherData["x_studio_total_diskon"]?.Value<int>() ?? 0,
+                            IsValid = true
+                        };
+                    }
+                }
+
+                Log.Information($"Voucher {voucherCode} is invalid or already used");
+                return new VoucherDetails
+                {
+                    VoucherCode = voucherCode,
+                    IsValid = false
+                };
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Error getting voucher details for {voucherCode}");
+                throw;
+            }
+        }
 
         public async Task<bool> CreateBoothOrder(string name, DateTime saleDate, decimal price, string saleType)
         {
@@ -89,15 +164,15 @@ namespace MiddleBooth.Services
 
             Log.Information($"Creating booth order: {name}, Local Date: {saleDate}, GMT Date: {gmtSaleDate}, Price: {price}, Sale Type: {saleType}");
             var args = new JArray
-    {
-        new JObject
-        {
-            ["x_name"] = name,
-            ["x_studio_tanggal_penjualan"] = gmtSaleDate.ToString("yyyy-MM-dd HH:mm:ss"),
-            ["x_studio_harga"] = price,
-            ["x_studio_tipe_penjualan"] = saleType
-        }
-    };
+                            {
+                                new JObject
+                                {
+                                    ["x_name"] = name,
+                                    ["x_studio_tanggal_penjualan"] = gmtSaleDate.ToString("yyyy-MM-dd HH:mm:ss"),
+                                    ["x_studio_harga"] = price,
+                                    ["x_studio_tipe_penjualan"] = saleType
+                                }
+                            };
 
             try
             {
@@ -129,14 +204,14 @@ namespace MiddleBooth.Services
                     ["service"] = "object",
                     ["method"] = "execute_kw",
                     ["args"] = new JArray
-            {
-                _connection.Database,
-                uid,
-                _connection.Password,
-                model,
-                method,
-                args
-            }
+                    {
+                        _connection.Database,
+                        uid,
+                        _connection.Password,
+                        model,
+                        method,
+                        args
+                    }
                 }
             };
 
