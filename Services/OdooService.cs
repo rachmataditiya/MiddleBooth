@@ -26,170 +26,111 @@ namespace MiddleBooth.Services
             Log.Information("OdooService initialized");
         }
 
-        public async Task<bool> CheckVoucher(string voucherCode)
+        public async Task<(bool success, int? machineId, int? partnerId, bool isNew, string message)> ActivateMachine(
+            string clientMachineId,
+            string name,
+            string partnerName,
+            string partnerStreet = null,
+            string partnerCity = null,
+            int? partnerStateId = null,
+            int? partnerCountryId = null,
+            string partnerZip = null,
+            string partnerPhone = null,
+            string partnerEmail = null,
+            float latitude = 0,
+            float longitude = 0)
         {
-            const string VOUCHER_MODEL = "x_voucher_management";
-            Log.Information($"Checking voucher: {voucherCode}");
-            var searchArgs = new JArray
+            Log.Information($"Activating machine: {clientMachineId}");
+            var args = new JArray
             {
-                new JArray
+                clientMachineId,
+                new JObject
                 {
-                    new JArray("x_studio_voucher_code", "=", voucherCode),
-                    new JArray("x_studio_used", "=", false)
+                    ["name"] = name,
+                    ["partner_name"] = partnerName,
+                    ["partner_street"] = partnerStreet,
+                    ["partner_city"] = partnerCity,
+                    ["partner_state_id"] = partnerStateId,
+                    ["partner_country_id"] = partnerCountryId,
+                    ["partner_zip"] = partnerZip,
+                    ["partner_phone"] = partnerPhone,
+                    ["partner_email"] = partnerEmail,
+                    ["latitude"] = latitude,
+                    ["longitude"] = longitude
                 }
             };
 
             try
             {
-                // Mencari voucher yang valid
-                var searchResult = await ExecuteKw<JArray>(VOUCHER_MODEL, "search", searchArgs);
-                if (searchResult != null && searchResult.Count > 0)
-                {
-                    var voucherId = searchResult[0].Value<int>();
-                    Log.Information($"Valid voucher found with ID: {voucherId}");
+                var result = await ExecuteKw<JObject>("booth.machine", "activate_machine", args);
+                bool success = result["success"].Value<bool>();
+                int? machineId = success ? result["machine_id"].Value<int>() : null;
+                int? partnerId = success ? result["partner_id"].Value<int>() : null;
+                bool isNew = result["is_new"].Value<bool>();
+                string message = result["message"].Value<string>();
+                Log.Information($"Machine activation result: Success={success}, MachineId={machineId}, PartnerId={partnerId}, IsNew={isNew}, Message={message}");
+                return (success, machineId, partnerId, isNew, message);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Error activating machine {clientMachineId}");
+                return (false, null, null, false, ex.Message);
+            }
+        }
 
-                    // Memperbarui voucher menjadi used
-                    var updateArgs = new JArray
-                    {
-                        voucherId,
-                        new JObject
-                        {
-                            ["x_studio_used"] = true
-                        }
-                    };
-                    var updateResult = await ExecuteKw<bool>(VOUCHER_MODEL, "write", updateArgs);
-
-                    if (updateResult)
-                    {
-                        Log.Information($"Voucher {voucherCode} marked as used");
-                        return true;
-                    }
-                    else
-                    {
-                        Log.Warning($"Failed to mark voucher {voucherCode} as used");
-                        return false;
-                    }
-                }
-                else
+        public async Task<VoucherDetails> CheckVoucher(string voucherCode, string clientMachineId)
+        {
+            Log.Information($"Checking voucher: {voucherCode} for machine: {clientMachineId}");
+            var args = new JArray { voucherCode, clientMachineId };
+            try
+            {
+                var result = await ExecuteKw<JObject>("booth.voucher", "check_voucher", args);
+                var voucherDetails = new VoucherDetails
                 {
-                    Log.Information($"Voucher {voucherCode} is invalid or already used");
-                    return false;
-                }
+                    VoucherCode = voucherCode,
+                    IsValid = result["is_valid"].Value<bool>(),
+                    Message = result["message"]?.Value<string>() ?? "",
+                    VoucherType = result["voucher_type"]?.Value<string>() ?? "",
+                    Value = result["value"]?.Value<float>() ?? 0,
+                    TotalDiscount = result["total_discount"]?.Value<float>() ?? 0,
+                    ExpiryDate = result["expiry_date"]?.Value<DateTime>()
+                };
+                Log.Information($"Voucher check result: {voucherDetails.IsValid}, Message={voucherDetails.Message}, Type={voucherDetails.VoucherType}, Value={voucherDetails.Value}, TotalDiscount={voucherDetails.TotalDiscount}, ExpiryDate={voucherDetails.ExpiryDate}");
+                return voucherDetails;
             }
             catch (Exception ex)
             {
                 Log.Error(ex, $"Error checking voucher {voucherCode}");
-                throw;
-            }
-        }
-        public async Task<VoucherDetails> GetVoucherDetails(string voucherCode)
-        {
-            const string VOUCHER_MODEL = "x_voucher_management";
-            Log.Information($"Getting voucher details for: {voucherCode}");
-
-            var searchDomain = new JArray
-            {
-                new JArray("x_studio_voucher_code", "=", voucherCode),
-                new JArray("x_studio_used", "=", false)
-            };
-
-                    var fieldsToRetrieve = new JArray
-            {
-                "x_studio_voucher_code",
-                "x_studio_voucher_type",
-                "x_studio_total_diskon"
-            };
-
-            try
-            {
-                var args = new JArray
-                {
-                    searchDomain,
-                    fieldsToRetrieve
-                };
-
-                var searchResult = await ExecuteKw<JArray>(VOUCHER_MODEL, "search_read", args);
-
-                if (searchResult != null && searchResult.Count > 0)
-                {
-                    var voucherData = searchResult[0] as JObject;
-                    var voucherId = voucherData["id"]?.Value<int>() ?? 0;
-                    if (voucherData != null)
-                    {
-                        var updateArgs = new JArray
-                                            {
-                                                voucherId,
-                                                new JObject
-                                                {
-                                                    ["x_studio_used"] = true
-                                                }
-                                            };
-                        var updateResult = await ExecuteKw<bool>(VOUCHER_MODEL, "write", updateArgs);
-
-                        if (updateResult)
-                        {
-                            Log.Information($"Voucher {voucherCode} marked as used");
-                        }
-                        else
-                        {
-                            Log.Warning($"Failed to mark voucher {voucherCode} as used");
-                        }
-                        return new VoucherDetails
-                        {
-                            VoucherCode = voucherData["x_studio_voucher_code"]?.ToString() ?? string.Empty,
-                            VoucherType = voucherData["x_studio_voucher_type"]?.ToString() ?? string.Empty,
-                            TotalDiscount = voucherData["x_studio_total_diskon"]?.Value<int>() ?? 0,
-                            IsValid = true
-                        };
-                    }
-                }
-
-                Log.Information($"Voucher {voucherCode} is invalid or already used");
                 return new VoucherDetails
                 {
                     VoucherCode = voucherCode,
-                    IsValid = false
+                    IsValid = false,
+                    Message = ex.Message
                 };
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, $"Error getting voucher details for {voucherCode}");
-                throw;
             }
         }
 
-        public async Task<bool> CreateBoothOrder(string name, DateTime saleDate, decimal price, string saleType)
+        public async Task<(bool success, int? orderId, string message)> CreateBoothOrder(string orderType, string clientMachineId, string voucherCode = null)
         {
-            var gmtSaleDate = saleDate.ToUniversalTime();
-
-            Log.Information($"Creating booth order: {name}, Local Date: {saleDate}, GMT Date: {gmtSaleDate}, Price: {price}, Sale Type: {saleType}");
-            var args = new JArray
-                            {
-                                new JObject
-                                {
-                                    ["x_name"] = name,
-                                    ["x_studio_tanggal_penjualan"] = gmtSaleDate.ToString("yyyy-MM-dd HH:mm:ss"),
-                                    ["x_studio_harga"] = price,
-                                    ["x_studio_tipe_penjualan"] = saleType
-                                }
-                            };
+            Log.Information($"Creating booth order: Type={orderType}, Machine={clientMachineId}, Voucher={voucherCode ?? "None"}");
+            var args = new JArray { orderType, clientMachineId };
+            if (!string.IsNullOrEmpty(voucherCode))
+            {
+                args.Add(voucherCode);
+            }
 
             try
             {
-                Log.Debug($"Create booth order arguments: {args}");
-                var result = await ExecuteKw<int>("x_booth_order", "create", args);
-                Log.Debug($"Create booth order result: {result}");
-                var success = result > 0;
-                Log.Information($"Booth order {name} creation {(success ? "successful" : "failed")}");
-                return success;
+                var result = await ExecuteKw<int>("booth.order", "create_booth_order", args);
+                Log.Information($"Booth order created successfully: OrderId={result}");
+                return (true, result, "Order created successfully");
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Error creating booth order {name}");
-                throw;
+                Log.Error(ex, "Error creating booth order");
+                return (false, null, ex.Message);
             }
         }
-
 
         private async Task<T?> ExecuteKw<T>(string model, string method, JArray args)
         {
@@ -242,6 +183,7 @@ namespace MiddleBooth.Services
                 throw;
             }
         }
+
         private async Task<int> GetUid()
         {
             if (_uid.HasValue)
