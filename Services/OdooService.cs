@@ -110,10 +110,10 @@ namespace MiddleBooth.Services
             }
         }
 
-        public async Task<(bool success, int? orderId, string message)> CreateBoothOrder(string orderType, string clientMachineId, string voucherCode = null)
+        public async Task<(bool success, int? orderId, string message)> CreateBoothOrder(string clientMachineId, string voucherCode = null)
         {
-            Log.Information($"Creating booth order: Type={orderType}, Machine={clientMachineId}, Voucher={voucherCode ?? "None"}");
-            var args = new JArray { orderType, clientMachineId };
+            Log.Information($"Creating booth order: Machine={clientMachineId}, Voucher={voucherCode ?? "None"}");
+            var args = new JArray { clientMachineId };
             if (!string.IsNullOrEmpty(voucherCode))
             {
                 args.Add(voucherCode);

@@ -21,7 +21,7 @@ namespace MiddleBooth.Services.Interfaces
 
         Task<VoucherDetails> CheckVoucher(string voucherCode, string clientMachineId);
 
-        Task<(bool success, int? orderId, string message)> CreateBoothOrder(string orderType, string clientMachineId, string voucherCode = null);
+        Task<(bool success, int? orderId, string message)> CreateBoothOrder(string clientMachineId, string voucherCode = null);
     }
 
     public class VoucherDetails
