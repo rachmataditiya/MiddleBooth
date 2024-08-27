@@ -72,7 +72,7 @@ namespace MiddleBooth.Services
                     Param4 = param4
                 };
 
-                Log.Information($"DSLRBooth event received: {eventType}, Param1: {param1}, Param2: {param2}, Param3: {param3}, Param4: {param4}");
+                //Log.Information($"DSLRBooth event received: {eventType}, Param1: {param1}, Param2: {param2}, Param3: {param3}, Param4: {param4}");
                 TriggerReceived?.Invoke(this, dslrBoothEvent);
             }
             else if (context.Request.HttpMethod == "POST" && context.Request.Url?.PathAndQuery == "/payment")

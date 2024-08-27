@@ -78,7 +78,7 @@ namespace MiddleBooth.ViewModels
         {
             if (e.EventType == "session_end")
             {
-                Log.Information("DSLRBooth session ended. Navigating to MainView.");
+                Log.Information("DSLRBooth session ended received. Navigating to MainView.");
                 await _dslrBoothService.SetDSLRBoothVisibility(false);
                 Application.Current.Dispatcher.Invoke(() =>
                 {
