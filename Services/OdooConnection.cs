@@ -1,18 +1,10 @@
 ﻿namespace MiddleBooth.Services
 {
-    public class OdooConnection
+    public class OdooConnection(string serverUrl, string database, string username, string password)
     {
-        public string ServerUrl { get; }
-        public string Database { get; }
-        public string Username { get; }
-        public string Password { get; }
-
-        public OdooConnection(string serverUrl, string database, string username, string password)
-        {
-            ServerUrl = serverUrl;
-            Database = database;
-            Username = username;
-            Password = password;
-        }
+        public string ServerUrl { get; } = serverUrl;
+        public string Database { get; } = database;
+        public string Username { get; } = username;
+        public string Password { get; } = password;
     }
 }

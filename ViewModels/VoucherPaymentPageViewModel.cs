@@ -166,10 +166,10 @@ namespace MiddleBooth.ViewModels
             if (IsPartialVoucher)
             {
                 Log.Information($"Proceeding to QRIS payment for discounted amount: {DiscountedPrice}");
-                _navigationService.NavigateTo("QrisPaymentPage");
-
-                // Menyimpan DiscountedPrice ke properti statis sementara
                 Application.Current.Properties["DiscountedPrice"] = DiscountedPrice;
+                Application.Current.Properties["VoucherCode"] = VoucherCode;
+                _navigationService.NavigateTo("QrisPaymentPage");
+                
             }
         }
 

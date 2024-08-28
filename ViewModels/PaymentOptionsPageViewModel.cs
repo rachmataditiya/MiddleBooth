@@ -1,8 +1,7 @@
-﻿// File: ViewModels/PaymentOptionsPageViewModel.cs
-
-using MiddleBooth.Services.Interfaces;
+﻿using MiddleBooth.Services.Interfaces;
 using MiddleBooth.Utilities;
 using System.Windows.Input;
+using System.Windows;
 using Serilog;
 
 namespace MiddleBooth.ViewModels
@@ -10,14 +9,16 @@ namespace MiddleBooth.ViewModels
     public class PaymentOptionsPageViewModel : BaseViewModel
     {
         private readonly INavigationService _navigationService;
+        private readonly IPaymentService _paymentService;
 
         public ICommand QrisPaymentCommand { get; }
         public ICommand VoucherPaymentCommand { get; }
         public ICommand BackCommand { get; }
 
-        public PaymentOptionsPageViewModel(INavigationService navigationService)
+        public PaymentOptionsPageViewModel(INavigationService navigationService, IPaymentService paymentService)
         {
             _navigationService = navigationService;
+            _paymentService = paymentService;
 
             QrisPaymentCommand = new RelayCommand(_ => StartQrisPayment());
             VoucherPaymentCommand = new RelayCommand(_ => StartVoucherPayment());
@@ -28,7 +29,22 @@ namespace MiddleBooth.ViewModels
 
         private void StartQrisPayment()
         {
-            Log.Information("Starting QRIS payment process");
+            Log.Information("Starting direct QRIS payment process");
+
+            // Clear any existing voucher data
+            if (Application.Current.Properties.Contains("VoucherCode"))
+            {
+                Application.Current.Properties.Remove("VoucherCode");
+            }
+            if (Application.Current.Properties.Contains("DiscountedPrice"))
+            {
+                Application.Current.Properties.Remove("DiscountedPrice");
+            }
+
+            // Set full price for QRIS payment
+            decimal fullPrice = _paymentService.GetServicePrice();
+            Application.Current.Properties["QrisPaymentAmount"] = fullPrice;
+
             _navigationService.NavigateTo("QrisPaymentPage");
         }
 

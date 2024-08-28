@@ -75,8 +75,8 @@ namespace MiddleBooth
                 Content = viewName switch
                 {
                     "SettingsView" => new SettingsView(new SettingsViewModel(_settingsService, _navigationService)),
-                    "PaymentOptionsPage" => new PaymentOptionsPage(new PaymentOptionsPageViewModel(_navigationService)),
-                    "QrisPaymentPage" => new QrisPaymentPage(new QrisPaymentPageViewModel(_navigationService, _paymentService, _dslrBoothService, _odooService, _webServerService, _settingsService)),
+                    "PaymentOptionsPage" => new PaymentOptionsPage(new PaymentOptionsPageViewModel(_navigationService,_paymentService)),
+                    "QrisPaymentPage" => new QrisPaymentPage(new QrisPaymentPageViewModel(_navigationService, _paymentService, _odooService, _dslrBoothService, _webServerService, _settingsService)),
                     "VoucherPaymentPage" => new VoucherPaymentPage(new VoucherPaymentPageViewModel(_navigationService, _paymentService, _odooService, _dslrBoothService, _webServerService, _settingsService)),
                     _ => new MainView(_settingsService, _navigationService, _dslrBoothService, _odooService)
                 };

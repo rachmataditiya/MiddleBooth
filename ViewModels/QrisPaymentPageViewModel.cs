@@ -13,8 +13,8 @@ namespace MiddleBooth.ViewModels
     {
         private readonly INavigationService _navigationService;
         private readonly IPaymentService _paymentService;
-        private readonly IDSLRBoothService _dslrBoothService;
         private readonly IOdooService _odooService;
+        private readonly IDSLRBoothService _dslrBoothService;
         private readonly IWebServerService _webServerService;
         private readonly ISettingsService _settingsService;
         private readonly string _machineId;
@@ -63,23 +63,66 @@ namespace MiddleBooth.ViewModels
             set => SetProperty(ref _amount, value);
         }
 
+        private string? _voucherCode;
+        public string? VoucherCode
+        {
+            get => _voucherCode;
+            set => SetProperty(ref _voucherCode, value);
+        }
+
         public QrisPaymentPageViewModel(
             INavigationService navigationService,
             IPaymentService paymentService,
-            IDSLRBoothService dslrBoothService,
             IOdooService odooService,
+            IDSLRBoothService dslrBoothService,
             IWebServerService webServerService,
             ISettingsService settingsService)
         {
             _navigationService = navigationService;
             _paymentService = paymentService;
-            _dslrBoothService = dslrBoothService;
             _odooService = odooService;
+            _dslrBoothService = dslrBoothService;
             _webServerService = webServerService;
             _settingsService = settingsService;
             _machineId = _settingsService.GetMachineId();
 
             BackCommand = new RelayCommand(_ => _navigationService.NavigateTo("MainView"));
+
+            if (Application.Current.Properties.Contains("QrisPaymentAmount"))
+            {
+                var qrisAmountObj = Application.Current.Properties["QrisPaymentAmount"];
+                if (qrisAmountObj is decimal qrisAmount)
+                {
+                    Amount = qrisAmount;
+                }
+                Application.Current.Properties.Remove("QrisPaymentAmount");
+            }
+            else if (Application.Current.Properties.Contains("DiscountedPrice"))
+            {
+                var discountedPriceObj = Application.Current.Properties["DiscountedPrice"];
+                if (discountedPriceObj is decimal discountedPrice)
+                {
+                    Amount = discountedPrice;
+                }
+                Application.Current.Properties.Remove("DiscountedPrice");
+            }
+
+            if (Amount == 0)
+            {
+                Amount = _paymentService.GetServicePrice();
+                Log.Warning("No valid payment amount found. Using default service price.");
+            }
+
+            if (Application.Current.Properties.Contains("VoucherCode"))
+            {
+                var voucherCodeObj = Application.Current.Properties["VoucherCode"];
+                if (voucherCodeObj is string voucherCode)
+                {
+                    VoucherCode = voucherCode;
+                }
+                Log.Information($"Voucher Code is Available: {VoucherCode}");
+                Application.Current.Properties.Remove("VoucherCode");
+            }
 
             _paymentService.OnPaymentNotificationReceived += HandlePaymentNotification;
             _webServerService.TriggerReceived += OnTriggerReceived;
@@ -90,19 +133,7 @@ namespace MiddleBooth.ViewModels
         {
             try
             {
-                decimal amount = _paymentService.GetServicePrice();
-
-                if (Application.Current.Properties.Contains("DiscountedPrice"))
-                {
-                    var discountedPrice = Application.Current.Properties["DiscountedPrice"];
-                    if (discountedPrice is decimal decimalPrice)
-                    {
-                        amount = decimalPrice;
-                    }
-                }
-
-                Amount = amount;
-                string qrCodeUrl = await _paymentService.GenerateQRCode(amount);
+                string qrCodeUrl = await _paymentService.GenerateQRCode(Amount);
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
@@ -151,21 +182,34 @@ namespace MiddleBooth.ViewModels
         {
             try
             {
-                var (success, orderId, message) = await _odooService.CreateBoothOrder(_machineId);
-                if (success && orderId.HasValue)
+                Log.Information($"Voucher Code is Available to create order: {VoucherCode}");
+                if (VoucherCode == null)
                 {
-                    Log.Information($"Booth order created successfully with ID: {orderId}");
-                    ShowNotification($"Order berhasil dibuat dengan ID: {orderId}");
+                    var (success, orderId, message) = await _odooService.CreateBoothOrder(_machineId);
+                    if (success && orderId.HasValue)
+                    {
+                        Log.Information($"Booth order created successfully with ID: {orderId}");
+                        ShowNotification($"Order berhasil dibuat dengan ID: {orderId}");
+                    }
+                    else
+                    {
+                        Log.Warning($"Failed to create booth order: {message}");
+                        ShowNotification($"Gagal membuat order: {message}");
+                    }
                 }
                 else
                 {
-                    Log.Warning($"Failed to create booth order: {message}");
-                    ShowNotification($"Gagal membuat order: {message}");
-                }
-
-                if (Application.Current.Properties.Contains("DiscountedPrice"))
-                {
-                    Application.Current.Properties.Remove("DiscountedPrice");
+                    var (success, orderId, message) = await _odooService.CreateBoothOrder(_machineId, VoucherCode);
+                    if (success && orderId.HasValue)
+                    {
+                        Log.Information($"Booth order created successfully with ID: {orderId}");
+                        ShowNotification($"Order berhasil dibuat dengan ID: {orderId}");
+                    }
+                    else
+                    {
+                        Log.Warning($"Failed to create booth order: {message}");
+                        ShowNotification($"Gagal membuat order: {message}");
+                    }
                 }
             }
             catch (Exception ex)
@@ -268,6 +312,7 @@ namespace MiddleBooth.ViewModels
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
