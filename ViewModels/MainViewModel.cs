@@ -1,6 +1,4 @@
-﻿// File: ViewModels/MainViewModel.cs
-
-using MiddleBooth.Services.Interfaces;
+﻿using MiddleBooth.Services.Interfaces;
 using MiddleBooth.Utilities;
 using System;
 using System.Windows;
@@ -15,10 +13,11 @@ namespace MiddleBooth.ViewModels
         private readonly ISettingsService _settingsService;
         private readonly INavigationService _navigationService;
         private readonly IDSLRBoothService _dslrBoothService;
+        private readonly IOdooService _odooService;
 
         public ICommand OpenSettingsCommand { get; }
         public ICommand ExitCommand { get; }
-        public ICommand ContinueCommand { get; }
+        public ICommand ContinueOrActivateCommand { get; }
 
         private bool _isKeypadVisible;
         public bool IsKeypadVisible
@@ -34,25 +33,39 @@ namespace MiddleBooth.ViewModels
             set => SetProperty(ref _keypadPurpose, value);
         }
 
-        private bool _isDSLRBoothSessionActive = false;
+        private readonly bool _isDSLRBoothSessionActive;
+
+        private string _continueButtonText = "Continue";
+        public string ContinueButtonText
+        {
+            get => _continueButtonText;
+            set => SetProperty(ref _continueButtonText, value);
+        }
 
         public KeypadViewModel KeypadViewModel { get; }
 
-        public MainViewModel(ISettingsService settingsService, INavigationService navigationService, IDSLRBoothService dslrBoothService)
+        public MainViewModel(ISettingsService settingsService, INavigationService navigationService, IDSLRBoothService dslrBoothService, IOdooService odooService)
         {
             _settingsService = settingsService;
             _navigationService = navigationService;
             _dslrBoothService = dslrBoothService;
+            _odooService = odooService;
 
             OpenSettingsCommand = new RelayCommand(_ => ShowKeypad("Settings"));
             ExitCommand = new RelayCommand(_ => ShowKeypad("Exit"));
-            ContinueCommand = new RelayCommand(_ => NavigateToPaymentOptions());
+            ContinueOrActivateCommand = new RelayCommand(async _ => await ContinueOrActivate());
 
             KeypadViewModel = new KeypadViewModel();
             KeypadViewModel.PinEntered += OnPinEntered;
             Log.Information("MainViewModel initialized. TriggerReceived event handler attached.");
 
-            _ = CheckDSLRBoothStatus();
+            _ = InitializeView();
+        }
+
+        private async Task InitializeView()
+        {
+            await CheckDSLRBoothStatus();
+            UpdateContinueButtonText();
         }
 
         private async Task CheckDSLRBoothStatus()
@@ -77,6 +90,53 @@ namespace MiddleBooth.ViewModels
                 }
             }
         }
+
+        private void UpdateContinueButtonText()
+        {
+            ContinueButtonText = _settingsService.MachineActivated() ? "Continue" : "Activate Machine";
+        }
+
+        private async Task ContinueOrActivate()
+        {
+            if (_settingsService.MachineActivated())
+            {
+                NavigateToPaymentOptions();
+            }
+            else
+            {
+                await ActivateMachine();
+            }
+        }
+
+        private async Task ActivateMachine()
+        {
+            try
+            {
+                string machineId = _settingsService.GetMachineId();
+                var result = await _odooService.ActivateMachine(
+                    machineId,
+                    $"Machine {machineId}",
+                    "MiddleBooth"
+                );
+
+                if (result.success)
+                {
+                    _settingsService.SetMachineActivated(true);
+                    UpdateContinueButtonText();
+                    MessageBox.Show("Machine activated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show($"Failed to activate machine: {result.message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error activating machine");
+                MessageBox.Show($"An error occurred while activating the machine: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         public async Task SetInitialVisibility()
         {
             Log.Information($"Setting initial visibility. DSLRBooth session active: {_isDSLRBoothSessionActive}");
@@ -131,8 +191,16 @@ namespace MiddleBooth.ViewModels
 
         public void Dispose()
         {
-            Log.Information("Disposing MainViewModel");
-            KeypadViewModel.PinEntered -= OnPinEntered;
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                KeypadViewModel.PinEntered -= OnPinEntered;
+            }
         }
     }
 }

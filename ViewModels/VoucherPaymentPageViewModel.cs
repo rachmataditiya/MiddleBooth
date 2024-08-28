@@ -15,6 +15,9 @@ namespace MiddleBooth.ViewModels
         private readonly IOdooService _odooService;
         private readonly IDSLRBoothService _dslrBoothService;
         private readonly IWebServerService _webServerService;
+        private readonly ISettingsService _settingsService;
+        private readonly string _machineId;
+        private bool _disposed;
 
         public ICommand ValidateVoucherCommand { get; }
         public ICommand BackCommand { get; }
@@ -40,8 +43,8 @@ namespace MiddleBooth.ViewModels
             set => SetProperty(ref _validationResultColor, value);
         }
 
-        private int _discountAmount;
-        public int DiscountAmount
+        private decimal _discountAmount;
+        public decimal DiscountAmount
         {
             get => _discountAmount;
             set => SetProperty(ref _discountAmount, value);
@@ -68,13 +71,21 @@ namespace MiddleBooth.ViewModels
             set => SetProperty(ref _isPartialVoucher, value);
         }
 
-        public VoucherPaymentPageViewModel(INavigationService navigationService, IPaymentService paymentService, IOdooService odooService, IDSLRBoothService dslrBoothService, IWebServerService webServerService)
+        public VoucherPaymentPageViewModel(
+            INavigationService navigationService,
+            IPaymentService paymentService,
+            IOdooService odooService,
+            IDSLRBoothService dslrBoothService,
+            IWebServerService webServerService,
+            ISettingsService settingsService)
         {
             _navigationService = navigationService;
             _paymentService = paymentService;
             _odooService = odooService;
             _dslrBoothService = dslrBoothService;
             _webServerService = webServerService;
+            _settingsService = settingsService;
+            _machineId = _settingsService.GetMachineId();
 
             ValidateVoucherCommand = new RelayCommand(async _ => await ValidateVoucherAsync());
             BackCommand = new RelayCommand(_ => _navigationService.NavigateTo("PaymentOptionsPage"));
@@ -84,51 +95,37 @@ namespace MiddleBooth.ViewModels
             Log.Information("VoucherPaymentPageViewModel initialized");
         }
 
-        private async void OnTriggerReceived(object? sender, DSLRBoothEvent e)
-        {
-            if (e.EventType == "session_end")
-            {
-                Log.Information("DSLRBooth session ended. Navigating to MainView.");
-                await _dslrBoothService.SetDSLRBoothVisibility(false);
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    _navigationService.NavigateTo("MainView");
-                });
-            }
-        }
-
         private async Task ValidateVoucherAsync()
         {
             Log.Information($"Validating voucher: {VoucherCode}");
             try
             {
-                var voucherDetails = await _odooService.GetVoucherDetails(VoucherCode);
+                var voucherDetails = await _odooService.CheckVoucher(VoucherCode, _machineId);
                 if (voucherDetails.IsValid)
                 {
                     Log.Information($"Voucher {VoucherCode} is valid");
 
                     decimal fullPrice = _paymentService.GetServicePrice();
-                    IsFullVoucher = voucherDetails.VoucherType.ToLower() == "full";
+                    IsFullVoucher = string.Equals(voucherDetails.VoucherType, "full", StringComparison.OrdinalIgnoreCase);
                     IsPartialVoucher = !IsFullVoucher;
 
-                    switch (voucherDetails.VoucherType.ToLower())
+                    switch (voucherDetails.VoucherType.ToLowerInvariant())
                     {
                         case "full":
-                            DiscountAmount = (int)fullPrice;
+                            DiscountAmount = fullPrice;
                             DiscountedPrice = 0;
                             ValidationResult = "Voucher Valid! Memulai sesi foto...";
                             await CreateBoothOrder();
                             await LaunchDSLRBooth();
                             break;
                         case "percentage":
-                            decimal percentage = voucherDetails.TotalDiscount / 100m;
-                            DiscountAmount = (int)(fullPrice * percentage);
+                            DiscountAmount = fullPrice * (decimal)(voucherDetails.Value / 100f);
                             DiscountedPrice = Math.Max(fullPrice - DiscountAmount, 0);
-                            ValidationResult = $"Voucher Valid! Diskon: {voucherDetails.TotalDiscount}% (Rp{DiscountAmount:N0}). Melanjutkan ke pembayaran...";
+                            ValidationResult = $"Voucher Valid! Diskon: {voucherDetails.Value}% (Rp{DiscountAmount:N0}). Melanjutkan ke pembayaran...";
                             ProceedToPayment();
                             break;
                         case "nominal":
-                            DiscountAmount = voucherDetails.TotalDiscount;
+                            DiscountAmount = (decimal)voucherDetails.Value;
                             DiscountedPrice = Math.Max(fullPrice - DiscountAmount, 0);
                             ValidationResult = $"Voucher Valid! Diskon: Rp{DiscountAmount:N0}. Melanjutkan ke pembayaran...";
                             ProceedToPayment();
@@ -172,7 +169,7 @@ namespace MiddleBooth.ViewModels
                 _navigationService.NavigateTo("QrisPaymentPage");
 
                 // Menyimpan DiscountedPrice ke properti statis sementara
-                App.Current.Properties["DiscountedPrice"] = DiscountedPrice;
+                Application.Current.Properties["DiscountedPrice"] = DiscountedPrice;
             }
         }
 
@@ -180,22 +177,17 @@ namespace MiddleBooth.ViewModels
         {
             try
             {
-                string name = $"BO{DateTime.Now:yyyyMMddHHmmss}";
-                decimal price = _paymentService.GetServicePrice();
-                string saleType = "Voucher";
-                Log.Information($"Creating booth order: {name}, Price: {price}, Sale Type: {saleType}");
-
-                bool success = await _odooService.CreateBoothOrder(name, DateTime.Now, price, saleType);
-                if (success)
+                var (success, orderId, message) = await _odooService.CreateBoothOrder(_machineId, VoucherCode);
+                if (success && orderId.HasValue)
                 {
-                    Log.Information($"Booth order {name} created successfully");
-                    ValidationResult = "Order berhasil dibuat!";
+                    Log.Information($"Booth order created successfully with ID: {orderId}");
+                    ValidationResult = $"Order berhasil dibuat dengan ID: {orderId}";
                     ValidationResultColor = "Green";
                 }
                 else
                 {
-                    Log.Warning($"Failed to create booth order {name}");
-                    ValidationResult = "Gagal membuat order.";
+                    Log.Warning($"Failed to create booth order: {message}");
+                    ValidationResult = $"Gagal membuat order: {message}";
                     ValidationResultColor = "Red";
                 }
             }
@@ -229,7 +221,6 @@ namespace MiddleBooth.ViewModels
                         Log.Warning("Failed to launch DSLRBooth after successful voucher validation");
                         ValidationResult = "Voucher valid, tapi gagal menjalankan DSLRBooth. Silakan cek pengaturan.";
                         ValidationResultColor = "Orange";
-                        return;
                     }
                 }
             }
@@ -241,9 +232,36 @@ namespace MiddleBooth.ViewModels
             }
         }
 
+        private async void OnTriggerReceived(object? sender, DSLRBoothEvent e)
+        {
+            if (e.EventType == "session_end")
+            {
+                Log.Information("DSLRBooth session ended. Navigating to MainView.");
+                await _dslrBoothService.SetDSLRBoothVisibility(false);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    _navigationService.NavigateTo("MainView");
+                });
+            }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _webServerService.TriggerReceived -= OnTriggerReceived;
+                }
+
+                _disposed = true;
+            }
+        }
+
         public void Dispose()
         {
-            _webServerService.TriggerReceived -= OnTriggerReceived;
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

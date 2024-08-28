@@ -16,6 +16,8 @@ namespace MiddleBooth.ViewModels
         private readonly IDSLRBoothService _dslrBoothService;
         private readonly IOdooService _odooService;
         private readonly IWebServerService _webServerService;
+        private readonly ISettingsService _settingsService;
+        private readonly string _machineId;
 
         public ICommand BackCommand { get; }
 
@@ -53,6 +55,7 @@ namespace MiddleBooth.ViewModels
             get => _notificationMessage;
             set => SetProperty(ref _notificationMessage, value);
         }
+
         private decimal _amount;
         public decimal Amount
         {
@@ -60,13 +63,21 @@ namespace MiddleBooth.ViewModels
             set => SetProperty(ref _amount, value);
         }
 
-        public QrisPaymentPageViewModel(INavigationService navigationService, IPaymentService paymentService, IDSLRBoothService dslrBoothService, IOdooService odooService, IWebServerService webServerService)
+        public QrisPaymentPageViewModel(
+            INavigationService navigationService,
+            IPaymentService paymentService,
+            IDSLRBoothService dslrBoothService,
+            IOdooService odooService,
+            IWebServerService webServerService,
+            ISettingsService settingsService)
         {
             _navigationService = navigationService;
             _paymentService = paymentService;
             _dslrBoothService = dslrBoothService;
             _odooService = odooService;
             _webServerService = webServerService;
+            _settingsService = settingsService;
+            _machineId = _settingsService.GetMachineId();
 
             BackCommand = new RelayCommand(_ => _navigationService.NavigateTo("MainView"));
 
@@ -74,34 +85,23 @@ namespace MiddleBooth.ViewModels
             _webServerService.TriggerReceived += OnTriggerReceived;
             Task.Run(StartQrisPayment);
         }
-        private async void OnTriggerReceived(object? sender, DSLRBoothEvent e)
-        {
-            if (e.EventType == "session_end")
-            {
-                Log.Information("DSLRBooth session ended. Navigating to MainView.");
-                await _dslrBoothService.SetDSLRBoothVisibility(false);
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    _navigationService.NavigateTo("MainView");
-                });
-            }
-        }
+
         private async Task StartQrisPayment()
         {
             try
             {
                 decimal amount = _paymentService.GetServicePrice();
 
-                // Mengambil DiscountedPrice dari properti aplikasi jika ada
-                if (App.Current.Properties.Contains("DiscountedPrice"))
+                if (Application.Current.Properties.Contains("DiscountedPrice"))
                 {
-                    var discountedPrice = App.Current.Properties["DiscountedPrice"];
+                    var discountedPrice = Application.Current.Properties["DiscountedPrice"];
                     if (discountedPrice is decimal decimalPrice)
                     {
                         amount = decimalPrice;
                     }
                 }
 
+                Amount = amount;
                 string qrCodeUrl = await _paymentService.GenerateQRCode(amount);
 
                 Application.Current.Dispatcher.Invoke(() =>
@@ -141,10 +141,38 @@ namespace MiddleBooth.ViewModels
 
                 if (status.ToLower().Trim() == "settlement")
                 {
-                    await CreateQRISOrder();
+                    await CreateBoothOrder();
                     await LaunchDSLRBooth();
                 }
             });
+        }
+
+        private async Task CreateBoothOrder()
+        {
+            try
+            {
+                var (success, orderId, message) = await _odooService.CreateBoothOrder(_machineId);
+                if (success && orderId.HasValue)
+                {
+                    Log.Information($"Booth order created successfully with ID: {orderId}");
+                    ShowNotification($"Order berhasil dibuat dengan ID: {orderId}");
+                }
+                else
+                {
+                    Log.Warning($"Failed to create booth order: {message}");
+                    ShowNotification($"Gagal membuat order: {message}");
+                }
+
+                if (Application.Current.Properties.Contains("DiscountedPrice"))
+                {
+                    Application.Current.Properties.Remove("DiscountedPrice");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error creating booth order");
+                ShowNotification($"Error membuat order: {ex.Message}");
+            }
         }
 
         private async Task LaunchDSLRBooth()
@@ -154,7 +182,7 @@ namespace MiddleBooth.ViewModels
                 if (_dslrBoothService.IsDSLRBoothRunning())
                 {
                     await _dslrBoothService.SetDSLRBoothVisibility(true);
-                    Log.Information("DSLRBooth set to visible after successful voucher validation");
+                    Log.Information("DSLRBooth set to visible after successful payment");
                 }
                 else
                 {
@@ -162,64 +190,24 @@ namespace MiddleBooth.ViewModels
                     if (launched)
                     {
                         await _dslrBoothService.SetDSLRBoothVisibility(true);
-                        Log.Information("DSLRBooth launched and set to visible after successful voucher validation");
+                        Log.Information("DSLRBooth launched and set to visible after successful payment");
                     }
                     else
                     {
-                        Log.Warning("Failed to launch DSLRBooth after successful voucher validation");
-                        PaymentStatus = "Voucher valid, tapi gagal menjalankan DSLRBooth. Silakan cek pengaturan.";
-                        PaymentStatusColor = "Orange";
-                        return;
+                        Log.Warning("Failed to launch DSLRBooth after successful payment");
+                        ShowNotification("Pembayaran berhasil, tapi gagal menjalankan DSLRBooth. Silakan cek pengaturan.");
                     }
                 }
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Error occurred while launching DSLRBooth");
-                PaymentStatus = "Terjadi kesalahan saat menjalankan DSLRBooth. Silakan hubungi administrator.";
-                PaymentStatusColor = "Red";
-            }
-        }
-
-        private async Task CreateQRISOrder()
-        {
-            try
-            {
-                string name = $"BO{DateTime.Now:yyyyMMddHHmmss}";
-                decimal price = _paymentService.GetServicePrice();
-                string saleType = "QRIS";
-                if (App.Current.Properties.Contains("DiscountedPrice"))
-                {
-                    var discountedPrice = App.Current.Properties["DiscountedPrice"];
-                    if (discountedPrice is decimal decimalPrice)
-                    {
-                        price = decimalPrice;
-                    }
-                    saleType = "Discount";
-                    App.Current.Properties.Remove("DiscountedPrice");
-                    Log.Information($"Creating Odoo order: {name}, Price: {price}, Sale Type: {saleType}");
-                }
-
-                bool success = await _odooService.CreateBoothOrder(name, DateTime.Now, price, saleType);
-                if (success)
-                {
-                    Log.Information($"QRIS booth order {name} created successfully");
-                }
-                else
-                {
-                    Log.Warning($"Failed to create QRIS booth order {name}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Error creating QRIS booth order");
+                ShowNotification("Terjadi kesalahan saat menjalankan DSLRBooth. Silakan hubungi administrator.");
             }
         }
 
         private void UpdatePaymentStatus(string status)
         {
-            Log.Information($"Memperbarui status pembayaran menjadi: {status}");
-
             switch (status.ToLower().Trim())
             {
                 case "settlement":
@@ -249,25 +237,44 @@ namespace MiddleBooth.ViewModels
 
         private void ShowNotification(string message)
         {
-            Log.Information($"Menampilkan notifikasi: {message}");
             NotificationMessage = message;
             IsNotificationVisible = true;
 
-            // Sembunyikan notifikasi setelah 3 detik
             Task.Delay(3000).ContinueWith(_ =>
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     IsNotificationVisible = false;
                     NotificationMessage = string.Empty;
-                    Log.Information("Notifikasi disembunyikan.");
                 });
             });
         }
 
+        private async void OnTriggerReceived(object? sender, DSLRBoothEvent e)
+        {
+            if (e.EventType == "session_end")
+            {
+                Log.Information("DSLRBooth session ended. Navigating to MainView.");
+                await _dslrBoothService.SetDSLRBoothVisibility(false);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    _navigationService.NavigateTo("MainView");
+                });
+            }
+        }
+
         public void Dispose()
         {
-            _paymentService.OnPaymentNotificationReceived -= HandlePaymentNotification;
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _paymentService.OnPaymentNotificationReceived -= HandlePaymentNotification;
+                _webServerService.TriggerReceived -= OnTriggerReceived;
+            }
         }
     }
 }

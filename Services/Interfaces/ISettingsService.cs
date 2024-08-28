@@ -1,4 +1,6 @@
-﻿namespace MiddleBooth.Services.Interfaces
+﻿using System.Configuration;
+
+namespace MiddleBooth.Services.Interfaces
 {
     public interface ISettingsService
     {
@@ -31,5 +33,9 @@
         void SetMqttUsername(string username);
         string GetMqttPassword();
         void SetMqttPassword(string password);
+        string GetMachineId();
+        void SetMachineId(string machineId);
+        public bool MachineActivated();
+        public void SetMachineActivated(bool activated);
     }
 }

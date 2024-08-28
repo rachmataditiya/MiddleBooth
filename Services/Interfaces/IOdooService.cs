@@ -9,19 +9,19 @@ namespace MiddleBooth.Services.Interfaces
             string clientMachineId,
             string name,
             string partnerName,
-            string partnerStreet = null,
-            string partnerCity = null,
+            string? partnerStreet = null,
+            string? partnerCity = null,
             int? partnerStateId = null,
             int? partnerCountryId = null,
-            string partnerZip = null,
-            string partnerPhone = null,
-            string partnerEmail = null,
+            string? partnerZip = null,
+            string? partnerPhone = null,
+            string? partnerEmail = null,
             float latitude = 0,
             float longitude = 0);
 
         Task<VoucherDetails> CheckVoucher(string voucherCode, string clientMachineId);
 
-        Task<(bool success, int? orderId, string message)> CreateBoothOrder(string clientMachineId, string voucherCode = null);
+        Task<(bool success, int? orderId, string message)> CreateBoothOrder(string clientMachineId, string? voucherCode = null);
     }
 
     public class VoucherDetails

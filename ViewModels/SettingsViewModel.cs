@@ -4,6 +4,10 @@ using Microsoft.Win32;
 using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Management;
+using System.Net.NetworkInformation;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace MiddleBooth.ViewModels
 {
@@ -94,7 +98,6 @@ namespace MiddleBooth.ViewModels
             }
         }
 
-        // Odoo Server
         private string _odooServer = string.Empty;
         public string OdooServer
         {
@@ -108,7 +111,6 @@ namespace MiddleBooth.ViewModels
             }
         }
 
-        // Odoo Username
         private string _odooUsername = string.Empty;
         public string OdooUsername
         {
@@ -122,7 +124,6 @@ namespace MiddleBooth.ViewModels
             }
         }
 
-        // Odoo Password
         private string _odooPassword = string.Empty;
         public string OdooPassword
         {
@@ -135,6 +136,7 @@ namespace MiddleBooth.ViewModels
                 }
             }
         }
+
         private string _odooDatabase = string.Empty;
         public string OdooDatabase
         {
@@ -147,6 +149,7 @@ namespace MiddleBooth.ViewModels
                 }
             }
         }
+
         private string _mqttHost = string.Empty;
         public string MqttHost
         {
@@ -213,6 +216,13 @@ namespace MiddleBooth.ViewModels
             set => SetProperty(ref _notificationMessage, value);
         }
 
+        private string _machineId = string.Empty;
+        public string MachineId
+        {
+            get => _machineId;
+            private set => SetProperty(ref _machineId, value);
+        }
+
         public SettingsViewModel(ISettingsService settingsService, INavigationService navigationService)
         {
             _settingsService = settingsService;
@@ -233,6 +243,8 @@ namespace MiddleBooth.ViewModels
             MqttPort = _settingsService.GetMqttPort();
             MqttUsername = _settingsService.GetMqttUsername();
             MqttPassword = _settingsService.GetMqttPassword();
+
+            MachineId = GetOrCreateMachineId();
 
             // Commands
             SaveSettingsCommand = new RelayCommand(SaveSettings);
@@ -287,6 +299,77 @@ namespace MiddleBooth.ViewModels
         private void NavigateBack()
         {
             _navigationService.NavigateTo("MainView");
+        }
+
+        private string GetOrCreateMachineId()
+        {
+            string savedMachineId = _settingsService.GetMachineId();
+            if (!string.IsNullOrEmpty(savedMachineId))
+            {
+                return savedMachineId;
+            }
+
+            string newMachineId = GenerateMachineId();
+            _settingsService.SetMachineId(newMachineId);
+            return newMachineId;
+        }
+
+        private static string GenerateMachineId()
+        {
+            string processorId = GetProcessorId();
+            string macAddress = GetMacAddress();
+            string combinedInfo = $"{processorId}|{macAddress}";
+
+            if (string.IsNullOrEmpty(combinedInfo))
+            {
+                // Fallback jika tidak bisa mendapatkan informasi hardware
+                combinedInfo = Guid.NewGuid().ToString();
+            }
+
+            byte[] hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(combinedInfo));
+            return BitConverter.ToString(hashBytes)[..32].Replace("-", "");
+        }
+
+        private static string GetProcessorId()
+        {
+            try
+            {
+                using var mc = new ManagementClass("win32_processor");
+                using var moc = mc.GetInstances();
+                foreach (var mo in moc)
+                {
+                    if (mo is ManagementObject managementObject)
+                    {
+                        return managementObject.Properties["processorID"].Value?.ToString() ?? string.Empty;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                Console.WriteLine($"Error getting processor ID: {ex.Message}");
+            }
+            return string.Empty;
+        }
+
+        private static string GetMacAddress()
+        {
+            try
+            {
+                foreach (NetworkInterface nic in NetworkInterface.GetAllNetworkInterfaces())
+                {
+                    if (nic.OperationalStatus == OperationalStatus.Up && nic.NetworkInterfaceType != NetworkInterfaceType.Loopback)
+                    {
+                        return nic.GetPhysicalAddress().ToString();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                Console.WriteLine($"Error getting MAC address: {ex.Message}");
+            }
+            return string.Empty;
         }
     }
 }

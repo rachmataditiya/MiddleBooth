@@ -74,8 +74,8 @@
 
             <!-- Main Content (Continue Button) -->
             <Grid Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Button Content="Continue" 
-                        Command="{Binding ContinueCommand}" 
+                <Button Content="{Binding ContinueButtonText}" 
+                        Command="{Binding ContinueOrActivateCommand}" 
                         Style="{StaticResource LargeButtonStyle}"
                         Background="MediumSeaGreen"
                         Width="300"

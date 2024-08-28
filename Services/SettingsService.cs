@@ -1,5 +1,6 @@
 ﻿using MiddleBooth.Services.Interfaces;
 using System.Configuration;
+using System.Reflection.PortableExecutable;
 
 namespace MiddleBooth.Services
 {
@@ -153,6 +154,25 @@ namespace MiddleBooth.Services
         {
             UpdateSetting("MqttPassword", password);
         }
+        public string GetMachineId()
+        {
+            return ConfigurationManager.AppSettings["MachineId"] ?? string.Empty;
+        }
+
+        public void SetMachineId(string machineId)
+        {
+            UpdateSetting("MachineId", machineId);
+        }
+        public bool MachineActivated()
+        {
+            return bool.Parse(ConfigurationManager.AppSettings["Activated"] ?? "false");
+        }
+
+        public void SetMachineActivated(bool activated)
+        {
+            UpdateSetting("Activated", activated.ToString());
+        }
+
         private static void UpdateSetting(string key, string value)
         {
             Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);

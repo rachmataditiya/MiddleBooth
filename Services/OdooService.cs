@@ -27,47 +27,58 @@ namespace MiddleBooth.Services
         }
 
         public async Task<(bool success, int? machineId, int? partnerId, bool isNew, string message)> ActivateMachine(
-            string clientMachineId,
-            string name,
-            string partnerName,
-            string partnerStreet = null,
-            string partnerCity = null,
-            int? partnerStateId = null,
-            int? partnerCountryId = null,
-            string partnerZip = null,
-            string partnerPhone = null,
-            string partnerEmail = null,
-            float latitude = 0,
-            float longitude = 0)
+    string clientMachineId,
+    string name,
+    string partnerName,
+    string? partnerStreet = null,
+    string? partnerCity = null,
+    int? partnerStateId = null,
+    int? partnerCountryId = null,
+    string? partnerZip = null,
+    string? partnerPhone = null,
+    string? partnerEmail = null,
+    float latitude = 0,
+    float longitude = 0)
         {
             Log.Information($"Activating machine: {clientMachineId}");
             var args = new JArray
-            {
-                clientMachineId,
-                new JObject
-                {
-                    ["name"] = name,
-                    ["partner_name"] = partnerName,
-                    ["partner_street"] = partnerStreet,
-                    ["partner_city"] = partnerCity,
-                    ["partner_state_id"] = partnerStateId,
-                    ["partner_country_id"] = partnerCountryId,
-                    ["partner_zip"] = partnerZip,
-                    ["partner_phone"] = partnerPhone,
-                    ["partner_email"] = partnerEmail,
-                    ["latitude"] = latitude,
-                    ["longitude"] = longitude
-                }
-            };
+    {
+        clientMachineId,
+        new JObject
+        {
+            ["name"] = name,
+            ["partner_name"] = partnerName,
+            ["partner_street"] = partnerStreet,
+            ["partner_city"] = partnerCity,
+            ["partner_state_id"] = partnerStateId,
+            ["partner_country_id"] = partnerCountryId,
+            ["partner_zip"] = partnerZip,
+            ["partner_phone"] = partnerPhone,
+            ["partner_email"] = partnerEmail,
+            ["latitude"] = latitude,
+            ["longitude"] = longitude
+        }
+    };
+
+            Log.Debug($"ActivateMachine args: {args}");
 
             try
             {
                 var result = await ExecuteKw<JObject>("booth.machine", "activate_machine", args);
-                bool success = result["success"].Value<bool>();
-                int? machineId = success ? result["machine_id"].Value<int>() : null;
-                int? partnerId = success ? result["partner_id"].Value<int>() : null;
-                bool isNew = result["is_new"].Value<bool>();
-                string message = result["message"].Value<string>();
+                Log.Debug($"ActivateMachine raw result: {result}");
+
+                if (result == null)
+                {
+                    Log.Warning("ActivateMachine: No result returned from Odoo");
+                    return (false, null, null, false, "No result returned from Odoo");
+                }
+
+                bool success = result["success"]?.Value<bool>() ?? false;
+                int? machineId = success ? result["machine_id"]?.Value<int>() : null;
+                int? partnerId = success ? result["partner_id"]?.Value<int>() : null;
+                bool isNew = result["is_new"]?.Value<bool>() ?? false;
+                string message = result["message"]?.Value<string>() ?? "No message provided";
+
                 Log.Information($"Machine activation result: Success={success}, MachineId={machineId}, PartnerId={partnerId}, IsNew={isNew}, Message={message}");
                 return (success, machineId, partnerId, isNew, message);
             }
@@ -85,10 +96,20 @@ namespace MiddleBooth.Services
             try
             {
                 var result = await ExecuteKw<JObject>("booth.voucher", "check_voucher", args);
+                if (result == null)
+                {
+                    return new VoucherDetails
+                    {
+                        VoucherCode = voucherCode,
+                        IsValid = false,
+                        Message = "No result returned from Odoo"
+                    };
+                }
+
                 var voucherDetails = new VoucherDetails
                 {
                     VoucherCode = voucherCode,
-                    IsValid = result["is_valid"].Value<bool>(),
+                    IsValid = result["is_valid"]?.Value<bool>() ?? false,
                     Message = result["message"]?.Value<string>() ?? "",
                     VoucherType = result["voucher_type"]?.Value<string>() ?? "",
                     Value = result["value"]?.Value<float>() ?? 0,
@@ -110,7 +131,7 @@ namespace MiddleBooth.Services
             }
         }
 
-        public async Task<(bool success, int? orderId, string message)> CreateBoothOrder(string clientMachineId, string voucherCode = null)
+        public async Task<(bool success, int? orderId, string message)> CreateBoothOrder(string clientMachineId, string? voucherCode = null)
         {
             Log.Information($"Creating booth order: Machine={clientMachineId}, Voucher={voucherCode ?? "None"}");
             var args = new JArray { clientMachineId };
@@ -135,6 +156,7 @@ namespace MiddleBooth.Services
         private async Task<T?> ExecuteKw<T>(string model, string method, JArray args)
         {
             Log.Debug($"Executing Odoo method: {model}.{method}");
+            Log.Debug($"Args: {args}");
             var uid = await GetUid();
             var jsonRpc = new JObject
             {
@@ -145,16 +167,18 @@ namespace MiddleBooth.Services
                     ["service"] = "object",
                     ["method"] = "execute_kw",
                     ["args"] = new JArray
-                    {
-                        _connection.Database,
-                        uid,
-                        _connection.Password,
-                        model,
-                        method,
-                        args
-                    }
+            {
+                _connection.Database,
+                uid,
+                _connection.Password,
+                model,
+                method,
+                args
+            }
                 }
             };
+
+            Log.Debug($"Full jsonRpc request: {jsonRpc}");
 
             try
             {
@@ -164,15 +188,16 @@ namespace MiddleBooth.Services
                 if (response.ContainsKey("error"))
                 {
                     var error = response["error"];
-                    Log.Error($"Odoo error: {error?["message"]}, Data: {error?["data"]?["message"]}");
-                    throw new Exception($"Odoo error: {error?["message"]}");
+                    string errorMessage = error?["message"]?.Value<string>() ?? "Unknown Odoo error";
+                    Log.Error($"Odoo error: {errorMessage}, Data: {error?["data"]?["message"]}");
+                    throw new Exception($"Odoo error: {errorMessage}");
                 }
 
                 var result = response["result"];
-                if (result != null)
+                if (result != null && result.Type != JTokenType.Null)
                 {
                     Log.Debug($"Odoo method {model}.{method} executed successfully. Result: {result}");
-                    return result.Value<T>();
+                    return result.ToObject<T>();
                 }
                 Log.Warning($"Odoo method {model}.{method} returned null result");
                 return default;
@@ -201,17 +226,21 @@ namespace MiddleBooth.Services
                     ["service"] = "common",
                     ["method"] = "login",
                     ["args"] = new JArray
-                    {
-                        _connection.Database,
-                        _connection.Username,
-                        _connection.Password
-                    }
+            {
+                _connection.Database,
+                _connection.Username,
+                _connection.Password
+            }
                 }
             };
+
+            Log.Debug($"Login request: {jsonRpc}");
 
             try
             {
                 var response = await SendRequest(_connection.ServerUrl + "/jsonrpc", jsonRpc);
+                Log.Debug($"Login response: {response}");
+
                 var result = response["result"];
                 if (result != null && result.Type != JTokenType.Null)
                 {
@@ -219,8 +248,9 @@ namespace MiddleBooth.Services
                     Log.Information($"UID obtained: {_uid}");
                     return _uid.Value;
                 }
-                Log.Error("Failed to get UID from Odoo server");
-                throw new Exception("Failed to get UID from Odoo server");
+
+                Log.Error($"Failed to get UID. Response: {response}");
+                throw new Exception($"Failed to get UID from Odoo server. Response: {response}");
             }
             catch (Exception ex)
             {
@@ -232,12 +262,21 @@ namespace MiddleBooth.Services
         private async Task<JObject> SendRequest(string url, JObject jsonRpc)
         {
             Log.Debug($"Sending request to Odoo server: {url}");
+            Log.Debug($"Request body: {jsonRpc}");
+
             var content = new StringContent(jsonRpc.ToString(), Encoding.UTF8, "application/json");
             try
             {
                 var response = await _httpClient.PostAsync(url, content);
                 var responseString = await response.Content.ReadAsStringAsync();
-                Log.Debug("Received response from Odoo server");
+                Log.Debug($"Received response from Odoo server. Status: {response.StatusCode}");
+                Log.Debug($"Response content: {responseString}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception($"HTTP request failed. Status: {response.StatusCode}, Content: {responseString}");
+                }
+
                 return JObject.Parse(responseString);
             }
             catch (Exception ex)

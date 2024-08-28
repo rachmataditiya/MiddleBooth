@@ -39,7 +39,7 @@ namespace MiddleBooth
             _navigationService.NavigationRequested += OnNavigationRequested;
             _navigationService.OverlayRequested += OnOverlayRequested;
 
-            Content = new MainView(_settingsService, _navigationService, _dslrBoothService, _webServerService);
+            Content = new MainView(_settingsService, _navigationService, _dslrBoothService, _odooService);
 
             Loaded += MainWindow_Loaded;
 
@@ -75,10 +75,10 @@ namespace MiddleBooth
                 Content = viewName switch
                 {
                     "SettingsView" => new SettingsView(new SettingsViewModel(_settingsService, _navigationService)),
-                    "PaymentOptionsPage" => new PaymentOptionsPage(new PaymentOptionsPageViewModel(_navigationService, _paymentService)),
-                    "QrisPaymentPage" => new QrisPaymentPage(new QrisPaymentPageViewModel(_navigationService, _paymentService, _dslrBoothService, _odooService, _webServerService)),
-                    "VoucherPaymentPage" => new VoucherPaymentPage(new VoucherPaymentPageViewModel(_navigationService, _paymentService, _odooService, _dslrBoothService, _webServerService)),
-                    _ => new MainView(_settingsService, _navigationService, _dslrBoothService, _webServerService)
+                    "PaymentOptionsPage" => new PaymentOptionsPage(new PaymentOptionsPageViewModel(_navigationService)),
+                    "QrisPaymentPage" => new QrisPaymentPage(new QrisPaymentPageViewModel(_navigationService, _paymentService, _dslrBoothService, _odooService, _webServerService, _settingsService)),
+                    "VoucherPaymentPage" => new VoucherPaymentPage(new VoucherPaymentPageViewModel(_navigationService, _paymentService, _odooService, _dslrBoothService, _webServerService, _settingsService)),
+                    _ => new MainView(_settingsService, _navigationService, _dslrBoothService, _odooService)
                 };
 
                 if (Content is MainView mainView && mainView.DataContext is MainViewModel viewModel)

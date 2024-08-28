@@ -10,16 +10,14 @@ namespace MiddleBooth.ViewModels
     public class PaymentOptionsPageViewModel : BaseViewModel
     {
         private readonly INavigationService _navigationService;
-        private readonly IPaymentService _paymentService;
 
         public ICommand QrisPaymentCommand { get; }
         public ICommand VoucherPaymentCommand { get; }
         public ICommand BackCommand { get; }
 
-        public PaymentOptionsPageViewModel(INavigationService navigationService, IPaymentService paymentService)
+        public PaymentOptionsPageViewModel(INavigationService navigationService)
         {
             _navigationService = navigationService;
-            _paymentService = paymentService;
 
             QrisPaymentCommand = new RelayCommand(_ => StartQrisPayment());
             VoucherPaymentCommand = new RelayCommand(_ => StartVoucherPayment());
