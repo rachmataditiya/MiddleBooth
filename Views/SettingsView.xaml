@@ -4,7 +4,54 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:local="clr-namespace:MiddleBooth.Views">
 
-    <Grid Background="White">
+    <UserControl.Resources>
+        <Style x:Key="CircularButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="87"/>
+            <Setter Property="Height" Value="87"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Ellipse x:Name="buttonEllipse" Fill="{TemplateBinding Background}" Stroke="White" StrokeThickness="2"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="buttonEllipse" Property="Fill" Value="#22FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="EllipticalButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="238"/>
+            <Setter Property="Height" Value="79"/>
+            <Setter Property="Background" Value="#AB2424"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Rectangle x:Name="buttonRectangle" Fill="{TemplateBinding Background}" RadiusX="39" RadiusY="39"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="buttonRectangle" Property="Fill" Value="#CC2424"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="#79A282">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -13,20 +60,28 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <TextBlock Grid.Row="0" 
-                   Text="Pengaturan" 
-                   FontSize="36" 
-                   FontWeight="Bold" 
-                   Foreground="MediumSeaGreen" 
-                   HorizontalAlignment="Center"
-                   Margin="0,30,0,20"/>
+        <Grid Grid.Row="0" Background="#79A282" Height="100">
+            <Button Command="{Binding BackCommand}"
+                    Style="{StaticResource CircularButtonStyle}"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Margin="20,0,0,0">
+                <materialDesign:PackIcon Kind="ArrowLeft" Width="40" Height="40" Foreground="White"/>
+            </Button>
+            <TextBlock Text="Pengaturan" 
+                       FontSize="36" 
+                       FontWeight="Bold" 
+                       Foreground="White" 
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"/>
+        </Grid>
 
         <!-- Notification Area -->
         <Border Grid.Row="1" 
                 Background="LightGreen" 
                 Visibility="{Binding IsNotificationVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                 Padding="10" 
-                Margin="0,0,0,20">
+                Margin="20,10">
             <TextBlock Text="{Binding NotificationMessage}" 
                        FontSize="18" 
                        Foreground="DarkGreen" 
@@ -35,7 +90,7 @@
 
         <!-- Main Content -->
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-            <Grid Margin="20,0">
+            <Grid Margin="20,10,20,20" Background="#79A282">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -44,9 +99,9 @@
 
                 <!-- Left Column -->
                 <StackPanel Grid.Column="0" Margin="10">
-                    <GroupBox Header="Aplikasi" Margin="0,0,0,20">
+                    <GroupBox Header="Aplikasi" Margin="0,0,0,20" Foreground="White">
                         <StackPanel>
-                            <TextBlock Text="DSLR Booth Path" FontSize="14" Margin="0,10,0,5"/>
+                            <TextBlock Text="DSLR Booth Path" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -62,21 +117,21 @@
                                         Height="30"/>
                             </Grid>
 
-                            <TextBlock Text="PIN Aplikasi" FontSize="14" Margin="0,10,0,5"/>
+                            <TextBlock Text="PIN Aplikasi" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
                             <PasswordBox PasswordChanged="PasswordBox_PasswordChanged"
                                          FontSize="12" 
                                          Padding="5"/>
                         </StackPanel>
                     </GroupBox>
 
-                    <GroupBox Header="Pembayaran" Margin="0,0,0,20">
+                    <GroupBox Header="Pembayaran" Margin="0,0,0,20" Foreground="White">
                         <StackPanel>
-                            <TextBlock Text="Payment Gateway URL" FontSize="14" Margin="0,10,0,5"/>
+                            <TextBlock Text="Payment Gateway URL" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
                             <TextBox Text="{Binding PaymentGatewayUrl}" 
                                      FontSize="12" 
                                      Padding="5"/>
 
-                            <TextBlock Text="Harga Layanan" FontSize="14" Margin="0,10,0,5"/>
+                            <TextBlock Text="Harga Layanan" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
                             <TextBox Text="{Binding ServicePrice}" 
                                      FontSize="12" 
                                      Padding="5"/>
@@ -86,9 +141,9 @@
 
                 <!-- Middle Column -->
                 <StackPanel Grid.Column="1" Margin="10">
-                    <GroupBox Header="Midtrans" Margin="0,0,0,20">
+                    <GroupBox Header="Midtrans" Margin="0,0,0,20" Foreground="White">
                         <StackPanel>
-                            <TextBlock Text="Midtrans Server Key" FontSize="14" Margin="0,10,0,5"/>
+                            <TextBlock Text="Midtrans Server Key" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
                             <TextBox Text="{Binding MidtransServerKey}" 
                                      FontSize="12" 
                                      Padding="5"/>
@@ -96,28 +151,29 @@
                             <CheckBox Content="Mode Produksi" 
                                       IsChecked="{Binding IsProduction}" 
                                       FontSize="14" 
-                                      Margin="0,10,0,0"/>
+                                      Margin="0,10,0,0"
+                                      Foreground="White"/>
                         </StackPanel>
                     </GroupBox>
 
-                    <GroupBox Header="MQTT" Margin="0,0,0,20">
+                    <GroupBox Header="MQTT" Margin="0,0,0,20" Foreground="White">
                         <StackPanel>
-                            <TextBlock Text="MQTT Host" FontSize="14" Margin="0,10,0,5"/>
+                            <TextBlock Text="MQTT Host" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
                             <TextBox Text="{Binding MqttHost}" 
                                      FontSize="12" 
                                      Padding="5"/>
 
-                            <TextBlock Text="MQTT Port" FontSize="14" Margin="0,10,0,5"/>
+                            <TextBlock Text="MQTT Port" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
                             <TextBox Text="{Binding MqttPort}" 
                                      FontSize="12" 
                                      Padding="5"/>
 
-                            <TextBlock Text="MQTT Username" FontSize="14" Margin="0,10,0,5"/>
+                            <TextBlock Text="MQTT Username" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
                             <TextBox Text="{Binding MqttUsername}" 
                                      FontSize="12" 
                                      Padding="5"/>
 
-                            <TextBlock Text="MQTT Password" FontSize="14" Margin="0,10,0,5"/>
+                            <TextBlock Text="MQTT Password" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
                             <PasswordBox x:Name="MqttPasswordBox"
                                          FontSize="12" 
                                          Padding="5"
@@ -128,24 +184,24 @@
 
                 <!-- Right Column -->
                 <StackPanel Grid.Column="2" Margin="10">
-                    <GroupBox Header="Odoo" Margin="0,0,0,20">
+                    <GroupBox Header="Odoo" Margin="0,0,0,20" Foreground="White">
                         <StackPanel>
-                            <TextBlock Text="Odoo Server" FontSize="14" Margin="0,10,0,5"/>
+                            <TextBlock Text="Odoo Server" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
                             <TextBox Text="{Binding OdooServer}" 
                                      FontSize="12" 
                                      Padding="5"/>
 
-                            <TextBlock Text="Odoo Username" FontSize="14" Margin="0,10,0,5"/>
+                            <TextBlock Text="Odoo Username" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
                             <TextBox Text="{Binding OdooUsername}" 
                                      FontSize="12" 
                                      Padding="5"/>
 
-                            <TextBlock Text="Odoo Password" FontSize="14" Margin="0,10,0,5"/>
+                            <TextBlock Text="Odoo Password" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
                             <PasswordBox PasswordChanged="OdooPasswordBox_PasswordChanged"
                                          FontSize="12" 
                                          Padding="5"/>
 
-                            <TextBlock Text="Odoo Database" FontSize="14" Margin="0,10,0,5"/>
+                            <TextBlock Text="Odoo Database" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
                             <TextBox Text="{Binding OdooDatabase}" 
                                      FontSize="12" 
                                      Padding="5"/>
@@ -156,23 +212,11 @@
         </ScrollViewer>
 
         <!-- Footer -->
-        <Grid Grid.Row="3" Background="WhiteSmoke">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,30">
-                <Button Command="{Binding SaveSettingsCommand}" 
-                        Content="Simpan" 
-                        Style="{StaticResource LargeButtonStyle}" 
-                        Background="MediumSeaGreen" 
-                        Width="150" 
-                        Height="50" 
-                        Margin="0,0,20,0"/>
-
-                <Button Command="{Binding BackCommand}" 
-                        Content="Kembali" 
-                        Style="{StaticResource LargeButtonStyle}" 
-                        Background="Tomato" 
-                        Width="150" 
-                        Height="50"/>
-            </StackPanel>
-        </Grid>
+        <Border Grid.Row="3" Background="#F2F0E4" Padding="20">
+            <Button Command="{Binding SaveSettingsCommand}" 
+                    Content="Simpan" 
+                    Style="{StaticResource EllipticalButtonStyle}"
+                    HorizontalAlignment="Center"/>
+        </Border>
     </Grid>
 </UserControl>

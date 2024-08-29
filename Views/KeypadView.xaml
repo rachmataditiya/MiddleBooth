@@ -7,23 +7,21 @@
     <UserControl.Resources>
         <!-- Keypad Button Style -->
         <Style x:Key="KeypadButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="90"/>
-            <Setter Property="Height" Value="90"/>
+            <Setter Property="Width" Value="87"/>
+            <Setter Property="Height" Value="87"/>
             <Setter Property="FontSize" Value="28"/>
-            <Setter Property="Margin" Value="8"/>
+            <Setter Property="Margin" Value="4"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Padding" Value="0"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" CornerRadius="8" Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0"/>
+                        <Border x:Name="border" CornerRadius="43.5" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="LightGray"/>
+                                <Setter TargetName="border" Property="Background" Value="#8F8F8F"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -32,40 +30,50 @@
         </Style>
     </UserControl.Resources>
 
-    <Grid Background="White" Width="320" Height="480">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <Border Background="White" Width="370" Height="580" CornerRadius="58.5" BorderBrush="Black" BorderThickness="3">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <!-- TextBox for Entered PIN -->
-        <Border Grid.Row="0" HorizontalAlignment="Center" Background="LightGray" CornerRadius="10" Padding="10" Margin="20">
-            <TextBlock Text="{Binding EnteredPin, Converter={StaticResource PinMaskConverter}}" 
-                       FontSize="36" 
-                       HorizontalAlignment="Center" 
-                       VerticalAlignment="Center"
-                       Foreground="Black" 
-                       TextAlignment="Center"/>
-        </Border>
+            <!-- TextBox for Entered PIN -->
+            <Border Grid.Row="0" HorizontalAlignment="Center" Background="White" CornerRadius="10" Padding="10" Margin="20,40,20,20">
+                <TextBlock Text="{Binding EnteredPin, Converter={StaticResource PinMaskConverter}}" 
+                           FontSize="36" 
+                           HorizontalAlignment="Center" 
+                           VerticalAlignment="Center"
+                           Foreground="Black" 
+                           TextAlignment="Center"/>
+            </Border>
 
-        <!-- Keypad Buttons -->
-        <UniformGrid Rows="4" Columns="3" Grid.Row="1" HorizontalAlignment="Center">
-            <Button Content="1" Command="{Binding NumberCommand}" CommandParameter="1" Style="{StaticResource KeypadButtonStyle}" Background="Coral"/>
-            <Button Content="2" Command="{Binding NumberCommand}" CommandParameter="2" Style="{StaticResource KeypadButtonStyle}" Background="LightSkyBlue"/>
-            <Button Content="3" Command="{Binding NumberCommand}" CommandParameter="3" Style="{StaticResource KeypadButtonStyle}" Background="LightGreen"/>
-            <Button Content="4" Command="{Binding NumberCommand}" CommandParameter="4" Style="{StaticResource KeypadButtonStyle}" Background="Gold"/>
-            <Button Content="5" Command="{Binding NumberCommand}" CommandParameter="5" Style="{StaticResource KeypadButtonStyle}" Background="Plum"/>
-            <Button Content="6" Command="{Binding NumberCommand}" CommandParameter="6" Style="{StaticResource KeypadButtonStyle}" Background="Tomato"/>
-            <Button Content="7" Command="{Binding NumberCommand}" CommandParameter="7" Style="{StaticResource KeypadButtonStyle}" Background="MediumPurple"/>
-            <Button Content="8" Command="{Binding NumberCommand}" CommandParameter="8" Style="{StaticResource KeypadButtonStyle}" Background="Salmon"/>
-            <Button Content="9" Command="{Binding NumberCommand}" CommandParameter="9" Style="{StaticResource KeypadButtonStyle}" Background="LightCoral"/>
-            <Button Command="{Binding ClearCommand}" Style="{StaticResource KeypadButtonStyle}" Background="PaleVioletRed">
-                <materialDesign:PackIcon Kind="Backspace" Width="36" Height="36" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"/>
-            </Button>
-            <Button Content="0" Command="{Binding NumberCommand}" CommandParameter="0" Style="{StaticResource KeypadButtonStyle}" Background="PaleTurquoise"/>
-            <Button Command="{Binding SubmitCommand}" Style="{StaticResource KeypadButtonStyle}" Background="MediumSeaGreen">
-                <materialDesign:PackIcon Kind="Check" Width="36" Height="36" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"/>
-            </Button>
-        </UniformGrid>
-    </Grid>
+            <!-- Keypad Buttons -->
+            <Grid Grid.Row="1" Margin="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Content="1" Command="{Binding NumberCommand}" CommandParameter="1" Style="{StaticResource KeypadButtonStyle}" Background="#6E6E6E" Grid.Row="0" Grid.Column="0"/>
+                <Button Content="2" Command="{Binding NumberCommand}" CommandParameter="2" Style="{StaticResource KeypadButtonStyle}" Background="#6E6E6E" Grid.Row="0" Grid.Column="1"/>
+                <Button Content="3" Command="{Binding NumberCommand}" CommandParameter="3" Style="{StaticResource KeypadButtonStyle}" Background="#6E6E6E" Grid.Row="0" Grid.Column="2"/>
+                <Button Content="4" Command="{Binding NumberCommand}" CommandParameter="4" Style="{StaticResource KeypadButtonStyle}" Background="#6E6E6E" Grid.Row="1" Grid.Column="0"/>
+                <Button Content="5" Command="{Binding NumberCommand}" CommandParameter="5" Style="{StaticResource KeypadButtonStyle}" Background="#6E6E6E" Grid.Row="1" Grid.Column="1"/>
+                <Button Content="6" Command="{Binding NumberCommand}" CommandParameter="6" Style="{StaticResource KeypadButtonStyle}" Background="#6E6E6E" Grid.Row="1" Grid.Column="2"/>
+                <Button Content="7" Command="{Binding NumberCommand}" CommandParameter="7" Style="{StaticResource KeypadButtonStyle}" Background="#6E6E6E" Grid.Row="2" Grid.Column="0"/>
+                <Button Content="8" Command="{Binding NumberCommand}" CommandParameter="8" Style="{StaticResource KeypadButtonStyle}" Background="#6E6E6E" Grid.Row="2" Grid.Column="1"/>
+                <Button Content="9" Command="{Binding NumberCommand}" CommandParameter="9" Style="{StaticResource KeypadButtonStyle}" Background="#6E6E6E" Grid.Row="2" Grid.Column="2"/>
+                <Button Content="X" Command="{Binding ClearCommand}" Style="{StaticResource KeypadButtonStyle}" Background="#AB2424" Grid.Row="3" Grid.Column="0"/>
+                <Button Content="0" Command="{Binding NumberCommand}" CommandParameter="0" Style="{StaticResource KeypadButtonStyle}" Background="#6E6E6E" Grid.Row="3" Grid.Column="1"/>
+                <Button Content="✓" Command="{Binding SubmitCommand}" Style="{StaticResource KeypadButtonStyle}" Background="#79A282" Grid.Row="3" Grid.Column="2"/>
+            </Grid>
+        </Grid>
+    </Border>
 </UserControl>

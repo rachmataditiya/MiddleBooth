@@ -63,7 +63,7 @@
         </StackPanel>
 
         <!-- Footer -->
-        <Border Grid.Row="2" Background="#F5F5F5" Padding="20">
+        <Border Grid.Row="2" Background="#F2F0E4" Padding="20">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <!-- Placeholder untuk logo pembayaran -->
                 <Image Source="/Resources/qris_logo.png" Width="60" Height="30" Margin="10"/>
