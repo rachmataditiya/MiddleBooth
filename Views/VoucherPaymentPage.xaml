@@ -115,12 +115,31 @@
 
         <!-- Footer -->
         <Border Grid.Row="2" Background="#F2F0E4" Padding="20">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Image Source="/Resources/qris_logo.png" Width="60" Height="30" Margin="10"/>
-                <Image Source="/Resources/visa_logo.png" Width="60" Height="30" Margin="10"/>
-                <Image Source="/Resources/mastercard_logo.png" Width="60" Height="30" Margin="10"/>
-                <Image Source="/Resources/bank_logo.png" Width="60" Height="30" Margin="10"/>
-            </StackPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Logo Purikura yang diperbesar -->
+                <Image Source="/Resources/purikura.png" Height="60" Grid.Column="0" Margin="0,0,20,0"/>
+
+                <!-- Teks tengah dengan ukuran yang disesuaikan -->
+                <TextBlock Text="Powered by Middle Booth" 
+                   VerticalAlignment="Center" 
+                   HorizontalAlignment="Center"
+                   Grid.Column="1"
+                   FontSize="18"
+                   FontWeight="SemiBold"/>
+
+                <!-- Informasi kontak dengan ukuran yang disesuaikan -->
+                <StackPanel Orientation="Vertical" Grid.Column="2" HorizontalAlignment="Right">
+                    <TextBlock Text="Get in Touch!" FontWeight="Bold" FontSize="16" Margin="0,0,0,5"/>
+                    <TextBlock Text="Email: purikura.id@gmail.com" FontSize="14"/>
+                    <TextBlock Text="Phone: +62 852 8250 8747" FontSize="14"/>
+                </StackPanel>
+            </Grid>
         </Border>
     </Grid>
 </UserControl>
