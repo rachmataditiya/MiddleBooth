@@ -5,6 +5,28 @@
              xmlns:local="clr-namespace:MiddleBooth.Views">
 
     <UserControl.Resources>
+        <Style x:Key="CircularButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="87"/>
+            <Setter Property="Height" Value="87"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Ellipse x:Name="buttonEllipse" Fill="{TemplateBinding Background}" Stroke="White" StrokeThickness="2"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="buttonEllipse" Property="Fill" Value="#22FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="EllipticalButtonStyle" TargetType="Button">
             <Setter Property="Width" Value="350"/>
             <Setter Property="Height" Value="120"/>
@@ -37,14 +59,22 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <TextBlock Grid.Row="0" 
-                   Text="Pilih Metode Pembayaran" 
-                   FontSize="36" 
-                   FontWeight="Bold" 
-                   Foreground="White" 
-                   HorizontalAlignment="Center"
-                   Margin="0,30,0,30"/>
+        <!-- Header dengan tombol kembali -->
+        <Grid Grid.Row="0" Background="#79A282" Height="100">
+            <Button Command="{Binding BackCommand}"
+                    Style="{StaticResource CircularButtonStyle}"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Margin="20,0,0,0">
+                <materialDesign:PackIcon Kind="ArrowLeft" Width="40" Height="40" Foreground="White"/>
+            </Button>
+            <TextBlock Text="Payment" 
+                       FontSize="36" 
+                       FontWeight="Bold" 
+                       Foreground="White" 
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"/>
+        </Grid>
 
         <!-- Main Content -->
         <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20">
@@ -75,12 +105,6 @@
                     </DataTemplate>
                 </Button.ContentTemplate>
             </Button>
-
-            <Button Content="Kembali" 
-                    Command="{Binding BackCommand}" 
-                    Style="{StaticResource EllipticalButtonStyle}" 
-                    Width="238" Height="79" 
-                    Margin="0,40,0,0"/>
         </StackPanel>
 
         <!-- Footer -->

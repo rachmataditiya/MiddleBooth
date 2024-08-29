@@ -5,6 +5,27 @@
              xmlns:local="clr-namespace:MiddleBooth.Views">
 
     <UserControl.Resources>
+        <Style x:Key="CircularButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="87"/>
+            <Setter Property="Height" Value="87"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Ellipse x:Name="buttonEllipse" Fill="{TemplateBinding Background}" Stroke="White" StrokeThickness="2"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="buttonEllipse" Property="Fill" Value="#22FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="EllipticalButtonStyle" TargetType="Button">
             <Setter Property="Width" Value="238"/>
             <Setter Property="Height" Value="79"/>
@@ -37,20 +58,28 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <TextBlock Grid.Row="0" 
-                   Text="Pembayaran Voucher" 
-                   FontSize="36" 
-                   FontWeight="Bold" 
-                   Foreground="White" 
-                   HorizontalAlignment="Center"
-                   Margin="0,30,0,20"/>
+        <!-- Header with Back Button -->
+        <Grid Grid.Row="0" Background="#79A282" Height="100">
+            <Button Command="{Binding BackCommand}"
+                    Style="{StaticResource CircularButtonStyle}"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Margin="20,0,0,0">
+                <materialDesign:PackIcon Kind="ArrowLeft" Width="40" Height="40" Foreground="White"/>
+            </Button>
+            <TextBlock Text="Voucher" 
+                       FontSize="36" 
+                       FontWeight="Bold" 
+                       Foreground="White" 
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"/>
+        </Grid>
 
         <!-- Main Content -->
         <Border Grid.Row="1" 
                 Background="White"
                 BorderBrush="#F2F0E4" 
-                BorderThickness="1" 
+                BorderThickness="2" 
                 CornerRadius="10" 
                 Padding="30" 
                 Margin="40,20">
@@ -86,10 +115,12 @@
 
         <!-- Footer -->
         <Border Grid.Row="2" Background="#F2F0E4" Padding="20">
-            <Button Content="Kembali" 
-                    Command="{Binding BackCommand}" 
-                    Style="{StaticResource EllipticalButtonStyle}"
-                    HorizontalAlignment="Center"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Image Source="/Resources/qris_logo.png" Width="60" Height="30" Margin="10"/>
+                <Image Source="/Resources/visa_logo.png" Width="60" Height="30" Margin="10"/>
+                <Image Source="/Resources/mastercard_logo.png" Width="60" Height="30" Margin="10"/>
+                <Image Source="/Resources/bank_logo.png" Width="60" Height="30" Margin="10"/>
+            </StackPanel>
         </Border>
     </Grid>
 </UserControl>
