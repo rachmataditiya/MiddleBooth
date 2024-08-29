@@ -224,28 +224,28 @@ namespace MiddleBooth.ViewModels
             get => _machineId;
             private set => SetProperty(ref _machineId, value);
         }
-        private string _productImagePath = string.Empty;
-        public string ProductImagePath
+        private string _ProductImage = string.Empty;
+        public string ProductImage
         {
-            get => _productImagePath;
+            get => _ProductImage;
             set
             {
-                if (SetProperty(ref _productImagePath, value))
+                if (SetProperty(ref _ProductImage, value))
                 {
-                    _settingsService.SetProductImagePath(value);
+                    _settingsService.SetProductImage(value);
                 }
             }
         }
 
-        private string _mainBackgroundImagePath = string.Empty;
-        public string MainBackgroundImagePath
+        private string _MainBackgroundImage = string.Empty;
+        public string MainBackgroundImage
         {
-            get => _mainBackgroundImagePath;
+            get => _MainBackgroundImage;
             set
             {
-                if (SetProperty(ref _mainBackgroundImagePath, value))
+                if (SetProperty(ref _MainBackgroundImage, value))
                 {
-                    _settingsService.SetMainBackgroundImagePath(value);
+                    _settingsService.SetMainBackgroundImage(value);
                 }
             }
         }
@@ -269,8 +269,8 @@ namespace MiddleBooth.ViewModels
             MqttPort = _settingsService.GetMqttPort();
             MqttUsername = _settingsService.GetMqttUsername();
             MqttPassword = _settingsService.GetMqttPassword();
-            ProductImagePath = _settingsService.GetProductImagePath();
-            MainBackgroundImagePath = _settingsService.GetMainBackgroundImagePath();
+            ProductImage = _settingsService.GetProductImage();
+            MainBackgroundImage = _settingsService.GetMainBackgroundImage();
             MachineId = GetOrCreateMachineId();
 
             // Commands
@@ -304,7 +304,7 @@ namespace MiddleBooth.ViewModels
 
             if (openFileDialog.ShowDialog() == true)
             {
-                ProductImagePath = openFileDialog.FileName;
+                ProductImage = openFileDialog.FileName;
             }
         }
 
@@ -318,7 +318,7 @@ namespace MiddleBooth.ViewModels
 
             if (openFileDialog.ShowDialog() == true)
             {
-                MainBackgroundImagePath = openFileDialog.FileName;
+                MainBackgroundImage = openFileDialog.FileName;
             }
         }
         private void SaveSettings(object? parameter)
@@ -338,8 +338,8 @@ namespace MiddleBooth.ViewModels
             _settingsService.SetMqttPort(MqttPort);
             _settingsService.SetMqttUsername(MqttUsername);
             _settingsService.SetMqttPassword(MqttPassword);
-            _settingsService.SetProductImagePath(ProductImagePath);
-            _settingsService.SetMainBackgroundImagePath(MainBackgroundImagePath);
+            _settingsService.SetProductImage(ProductImage);
+            _settingsService.SetMainBackgroundImage(MainBackgroundImage);
 
             // Show notification
             NotificationMessage = "Pengaturan berhasil disimpan!";

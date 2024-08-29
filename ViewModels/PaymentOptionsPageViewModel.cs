@@ -55,7 +55,7 @@ namespace MiddleBooth.ViewModels
 
         private void LoadProductImage()
         {
-            string imagePath = _settingsService.GetProductImagePath();
+            string imagePath = _settingsService.GetProductImage();
             if (File.Exists(imagePath))
             {
                 ProductImageSource = new BitmapImage(new Uri(imagePath, UriKind.Absolute));

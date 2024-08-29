@@ -25,40 +25,78 @@ namespace MiddleBooth.Services
             _httpClient = new HttpClient();
             Log.Information("OdooService initialized");
         }
-
-        public async Task<(bool success, int? machineId, int? partnerId, bool isNew, string message)> ActivateMachine(
-    string clientMachineId,
-    string name,
-    string partnerName,
-    string? partnerStreet = null,
-    string? partnerCity = null,
-    int? partnerStateId = null,
-    int? partnerCountryId = null,
-    string? partnerZip = null,
-    string? partnerPhone = null,
-    string? partnerEmail = null,
-    float latitude = 0,
-    float longitude = 0)
+        public async Task<MachineInfo> GetMachineInfo(string clientMachineId)
         {
+            Log.Information($"Getting machine info for: {clientMachineId}");
+            var args = new JArray { clientMachineId };
+
+            try
+            {
+                var result = await ExecuteKw<JObject>("booth.machine", "get_machine_info", args);
+                if (result == null)
+                {
+                    Log.Warning("GetMachineInfo: No result returned from Odoo");
+                    return new MachineInfo { Success = false, Message = "No result returned from Odoo" };
+                }
+
+                var machineInfo = new MachineInfo
+                {
+                    Success = result["success"]?.Value<bool>() ?? false,
+                    Message = result["message"]?.Value<string>() ?? "",
+                    Name = result["name"]?.Value<string>(),
+                    ClientMachineId = result["client_machine_id"]?.Value<string>(),
+                    ApplicationPin = result["application_pin"]?.Value<string>(),
+                    MidtransServerKey = result["midtrans_server_key"]?.Value<string>(),
+                    IsProduction = result["is_production"]?.Value<bool>() ?? false,
+                    Latitude = result["latitude"]?.Value<float>(),
+                    Longitude = result["longitude"]?.Value<float>(),
+                    Price = result["price"]?.Value<float>() ?? 0.0f,
+                    ProductImage = result["product_image"]?.Value<string>(),
+                    MainBackgroundImage = result["main_background_image"]?.Value<string>()
+                };
+
+                Log.Information($"Machine info retrieved successfully for {clientMachineId}");
+                return machineInfo;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Error getting machine info for {clientMachineId}");
+                return new MachineInfo { Success = false, Message = ex.Message };
+            }
+        }
+        public async Task<(bool success, int? machineId, int? partnerId, bool isNew, string message)> ActivateMachine(
+                string clientMachineId,
+                string name,
+                string partnerName,
+                string? partnerStreet = null,
+                string? partnerCity = null,
+                int? partnerStateId = null,
+                int? partnerCountryId = null,
+                string? partnerZip = null,
+                string? partnerPhone = null,
+                string? partnerEmail = null,
+                float latitude = 0,
+                float longitude = 0)
+            {
             Log.Information($"Activating machine: {clientMachineId}");
             var args = new JArray
-    {
-        clientMachineId,
-        new JObject
-        {
-            ["name"] = name,
-            ["partner_name"] = partnerName,
-            ["partner_street"] = partnerStreet,
-            ["partner_city"] = partnerCity,
-            ["partner_state_id"] = partnerStateId,
-            ["partner_country_id"] = partnerCountryId,
-            ["partner_zip"] = partnerZip,
-            ["partner_phone"] = partnerPhone,
-            ["partner_email"] = partnerEmail,
-            ["latitude"] = latitude,
-            ["longitude"] = longitude
-        }
-    };
+            {
+                clientMachineId,
+                new JObject
+                {
+                    ["name"] = name,
+                    ["partner_name"] = partnerName,
+                    ["partner_street"] = partnerStreet,
+                    ["partner_city"] = partnerCity,
+                    ["partner_state_id"] = partnerStateId,
+                    ["partner_country_id"] = partnerCountryId,
+                    ["partner_zip"] = partnerZip,
+                    ["partner_phone"] = partnerPhone,
+                    ["partner_email"] = partnerEmail,
+                    ["latitude"] = latitude,
+                    ["longitude"] = longitude
+                }
+            };
 
             Log.Debug($"ActivateMachine args: {args}");
 
@@ -284,6 +322,21 @@ namespace MiddleBooth.Services
                 Log.Error(ex, $"Error sending request to Odoo server: {url}");
                 throw;
             }
+        }
+        public class MachineInfo
+        {
+            public bool Success { get; set; }
+            public string? Message { get; set; }
+            public string? Name { get; set; }
+            public string? ClientMachineId { get; set; }
+            public string? ApplicationPin { get; set; }
+            public string? MidtransServerKey { get; set; }
+            public bool IsProduction { get; set; }
+            public float? Latitude { get; set; }
+            public float? Longitude { get; set; }
+            public float Price { get; set; }
+            public string? ProductImage { get; set; }
+            public string? MainBackgroundImage { get; set; }
         }
     }
 }

@@ -146,7 +146,7 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBox Grid.Column="0" Text="{Binding ProductImagePath}" 
+                                <TextBox Grid.Column="0" Text="{Binding ProductImage}" 
                                          FontSize="12" 
                                          Padding="5" 
                                          Margin="0,0,10,0"/>
@@ -162,7 +162,7 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBox Grid.Column="0" Text="{Binding MainBackgroundImagePath}" 
+                                <TextBox Grid.Column="0" Text="{Binding MainBackgroundImage}" 
                                          FontSize="12" 
                                          Padding="5" 
                                          Margin="0,0,10,0"/>

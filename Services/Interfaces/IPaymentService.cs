@@ -1,5 +1,4 @@
-﻿using MiddleBooth.Models;
-using System;
+﻿using System;
 using System.Threading.Tasks;
 
 namespace MiddleBooth.Services.Interfaces

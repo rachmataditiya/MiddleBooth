@@ -10,12 +10,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\bank_logo.png" />
-    <None Remove="Resources\mastercard_logo.png" />
     <None Remove="Resources\purikura.png" />
     <None Remove="Resources\purikura_logo.png" />
-    <None Remove="Resources\qris_logo.png" />
-    <None Remove="Resources\visa_logo.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,11 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Resources\bank_logo.png" />
-    <Resource Include="Resources\mastercard_logo.png" />
     <Resource Include="Resources\purikura.png" />
-    <Resource Include="Resources\qris_logo.png" />
-    <Resource Include="Resources\visa_logo.png" />
   </ItemGroup>
 
   <ItemGroup>

@@ -51,7 +51,7 @@ namespace MiddleBooth.ViewModels
 
         private void LoadMainBackgroundImage()
         {
-            string imagePath = _settingsService.GetMainBackgroundImagePath();
+            string imagePath = _settingsService.GetMainBackgroundImage();
             if (File.Exists(imagePath))
             {
                 MainBackgroundImageSource = new BitmapImage(new Uri(imagePath, UriKind.Absolute));
@@ -60,8 +60,7 @@ namespace MiddleBooth.ViewModels
             else
             {
                 Log.Warning($"Main background image not found at {imagePath}");
-                // Optionally, set a default image here
-                // MainBackgroundImageSource = new BitmapImage(new Uri("/Resources/default_background_image.png", UriKind.Relative));
+                MainBackgroundImageSource = new BitmapImage(new Uri("/Resources/background.png", UriKind.Relative));
             }
         }
 

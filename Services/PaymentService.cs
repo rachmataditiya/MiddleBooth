@@ -6,7 +6,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using MiddleBooth.Models;
 using MiddleBooth.Services.Interfaces;
 using Serilog;
 using System.Security.Cryptography;
