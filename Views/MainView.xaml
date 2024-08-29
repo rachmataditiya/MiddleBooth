@@ -53,7 +53,7 @@
         </Style>
     </UserControl.Resources>
 
-    <Grid Background="#79A282">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -61,8 +61,11 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Background Image (Center) -->
+        <Image Source="{Binding MainBackgroundImageSource}" Stretch="UniformToFill" Grid.RowSpan="4"/>
+
         <!-- Top Bar -->
-        <Grid Grid.Row="0" Background="#79A282">
+        <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
@@ -84,11 +87,6 @@
             </Button>
         </Grid>
 
-        <!-- Space for Image (Center) -->
-        <Grid Grid.Row="1">
-            <!-- Placeholder for future image -->
-        </Grid>
-
         <!-- Continue Button (Moved down) -->
         <Grid Grid.Row="2" HorizontalAlignment="Center" Margin="0,0,0,20">
             <Button Content="{Binding ContinueButtonText}" 
@@ -99,33 +97,28 @@
 
         <!-- Footer -->
         <Border Grid.Row="3" Background="#F2F0E4" Padding="20">
-            <Border Grid.Row="2" Background="#F2F0E4" Padding="20">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-                    <!-- Logo Purikura yang diperbesar -->
-                    <Image Source="/Resources/purikura.png" Height="60" Grid.Column="0" Margin="0,0,20,0"/>
+                <Image Source="/Resources/purikura.png" Height="60" Grid.Column="0" Margin="0,0,20,0"/>
 
-                    <!-- Teks tengah dengan ukuran yang disesuaikan -->
-                    <TextBlock Text="Powered by Middle Booth" 
-                   VerticalAlignment="Center" 
-                   HorizontalAlignment="Center"
-                   Grid.Column="1"
-                   FontSize="18"
-                   FontWeight="SemiBold"/>
+                <TextBlock Text="Powered by Middle Booth" 
+                           VerticalAlignment="Center" 
+                           HorizontalAlignment="Center"
+                           Grid.Column="1"
+                           FontSize="18"
+                           FontWeight="SemiBold"/>
 
-                    <!-- Informasi kontak dengan ukuran yang disesuaikan -->
-                    <StackPanel Orientation="Vertical" Grid.Column="2" HorizontalAlignment="Right">
-                        <TextBlock Text="Get in Touch!" FontWeight="Bold" FontSize="16" Margin="0,0,0,5"/>
-                        <TextBlock Text="Email: purikura.id@gmail.com" FontSize="14"/>
-                        <TextBlock Text="Phone: +62 852 8250 8747" FontSize="14"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
+                <StackPanel Orientation="Vertical" Grid.Column="2" HorizontalAlignment="Right">
+                    <TextBlock Text="Get in Touch!" FontWeight="Bold" FontSize="16" Margin="0,0,0,5"/>
+                    <TextBlock Text="Email: purikura.id@gmail.com" FontSize="14"/>
+                    <TextBlock Text="Phone: +62 852 8250 8747" FontSize="14"/>
+                </StackPanel>
+            </Grid>
         </Border>
 
         <!-- Keypad Overlay -->

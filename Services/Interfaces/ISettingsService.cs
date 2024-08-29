@@ -37,5 +37,9 @@ namespace MiddleBooth.Services.Interfaces
         void SetMachineId(string machineId);
         public bool MachineActivated();
         public void SetMachineActivated(bool activated);
+        string GetProductImagePath();
+        void SetProductImagePath(string path);
+        string GetMainBackgroundImagePath();
+        void SetMainBackgroundImagePath(string path);
     }
 }

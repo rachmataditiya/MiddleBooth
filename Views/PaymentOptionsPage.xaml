@@ -26,24 +26,22 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
-        <Style x:Key="EllipticalButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="350"/>
-            <Setter Property="Height" Value="120"/>
+        <Style x:Key="RoundedButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="300"/>
+            <Setter Property="Height" Value="65"/>
             <Setter Property="Background" Value="#AB2424"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontSize" Value="22"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Grid>
-                            <Rectangle x:Name="background" Fill="{TemplateBinding Background}" RadiusX="60" RadiusY="60"/>
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="15">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
+                        </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="background" Property="Fill" Value="#C82828"/>
+                                <Setter TargetName="border" Property="Background" Value="#C82828"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -59,7 +57,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header dengan tombol kembali -->
+        <!-- Header with Back Button -->
         <Grid Grid.Row="0" Background="#79A282" Height="100">
             <Button Command="{Binding BackCommand}"
                     Style="{StaticResource CircularButtonStyle}"
@@ -68,7 +66,7 @@
                     Margin="20,0,0,0">
                 <materialDesign:PackIcon Kind="ArrowLeft" Width="40" Height="40" Foreground="White"/>
             </Button>
-            <TextBlock Text="Payment" 
+            <TextBlock Text="Pilih Metode Pembayaran" 
                        FontSize="36" 
                        FontWeight="Bold" 
                        Foreground="White" 
@@ -77,65 +75,80 @@
         </Grid>
 
         <!-- Main Content -->
-        <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20">
-            <Button Content="Pembayaran QRIS" 
-                    Command="{Binding QrisPaymentCommand}" 
-                    Style="{StaticResource EllipticalButtonStyle}" 
-                    Margin="0,20">
-                <Button.ContentTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="QrcodeScan" Width="40" Height="40" Margin="0,0,20,0"/>
-                            <TextBlock Text="{Binding}" FontSize="24" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </Button.ContentTemplate>
-            </Button>
+        <Grid Grid.Row="1" Margin="40">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-            <Button Content="Pembayaran Voucher" 
-                    Command="{Binding VoucherPaymentCommand}" 
-                    Style="{StaticResource EllipticalButtonStyle}" 
-                    Margin="0,20">
-                <Button.ContentTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="Ticket" Width="40" Height="40" Margin="0,0,20,0"/>
-                            <TextBlock Text="{Binding}" FontSize="24" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </Button.ContentTemplate>
-            </Button>
-        </StackPanel>
+            <!-- Product Image with fixed size, centered, and subtle shadow -->
+            <Border Grid.Column="1" Width="520" Height="580" 
+                    HorizontalAlignment="Center" VerticalAlignment="Center" 
+                    Margin="0,0,20,0" CornerRadius="20">
+                <Border.Effect>
+                    <DropShadowEffect ShadowDepth="5" Direction="315" Color="Black" Opacity="0.5" BlurRadius="10"/>
+                </Border.Effect>
+                <Image Source="{Binding ProductImageSource}" Stretch="Uniform"/>
+            </Border>
+
+            <!-- Payment Options with fixed size, centered, white background, and shadow -->
+            <Border Grid.Column="2" Background="White" CornerRadius="20" Padding="30" 
+                    Width="480" Height="580" HorizontalAlignment="Center" 
+                    VerticalAlignment="Center" Margin="20,0,0,0">
+                <Border.Effect>
+                    <DropShadowEffect ShadowDepth="5" Direction="315" Color="Black" Opacity="0.5" BlurRadius="10"/>
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="Photo Sticker 4x6&quot;" FontSize="32" FontWeight="Bold" FontFamily="Segoe UI" Margin="0,0,0,15"/>
+                    <TextBlock Text="{Binding FormattedServicePrice}" FontSize="30" FontWeight="SemiBold" Foreground="#AB2424" Margin="0,0,0,25"/>
+                    <TextBlock Text="Detail Pesanan" FontSize="26" FontWeight="Bold" FontFamily="Segoe UI" Margin="0,0,0,15"/>
+                    <TextBlock Text="• x1 Photo Sticker 4x6&quot;" FontSize="24" FontFamily="Segoe UI" Margin="0,0,0,10"/>
+                    <TextBlock Text="• Softfile" FontSize="24" FontFamily="Segoe UI" Margin="0,0,0,10"/>
+                    <TextBlock Text="• GIF" FontSize="24" FontFamily="Segoe UI" Margin="0,0,0,30"/>
+
+                    <Button Content="Pembayaran QRIS" 
+                            Command="{Binding QrisPaymentCommand}" 
+                            Style="{StaticResource RoundedButtonStyle}" 
+                            Margin="0,0,0,20"/>
+
+                    <Button Content="Gunakan Voucher" 
+                            Command="{Binding VoucherPaymentCommand}" 
+                            Style="{StaticResource RoundedButtonStyle}"
+                            Background="#F2F0E4"
+                            Foreground="Black"/>
+                </StackPanel>
+            </Border>
+        </Grid>
 
         <!-- Footer -->
         <Border Grid.Row="2" Background="#F2F0E4" Padding="20">
-            <Border Grid.Row="2" Background="#F2F0E4" Padding="20">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-                    <!-- Logo Purikura yang diperbesar -->
-                    <Image Source="/Resources/purikura.png" Height="60" Grid.Column="0" Margin="0,0,20,0"/>
+                <!-- Logo Purikura yang diperbesar -->
+                <Image Source="/Resources/purikura.png" Height="60" Grid.Column="0" Margin="0,0,20,0"/>
 
-                    <!-- Teks tengah dengan ukuran yang disesuaikan -->
-                    <TextBlock Text="Powered by Middle Booth" 
-                   VerticalAlignment="Center" 
-                   HorizontalAlignment="Center"
-                   Grid.Column="1"
-                   FontSize="18"
-                   FontWeight="SemiBold"/>
+                <!-- Teks tengah dengan ukuran yang disesuaikan -->
+                <TextBlock Text="Powered by Middle Booth" 
+       VerticalAlignment="Center" 
+       HorizontalAlignment="Center"
+       Grid.Column="1"
+       FontSize="18"
+       FontWeight="SemiBold"/>
 
-                    <!-- Informasi kontak dengan ukuran yang disesuaikan -->
-                    <StackPanel Orientation="Vertical" Grid.Column="2" HorizontalAlignment="Right">
-                        <TextBlock Text="Get in Touch!" FontWeight="Bold" FontSize="16" Margin="0,0,0,5"/>
-                        <TextBlock Text="Email: purikura.id@gmail.com" FontSize="14"/>
-                        <TextBlock Text="Phone: +62 852 8250 8747" FontSize="14"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
+                <!-- Informasi kontak dengan ukuran yang disesuaikan -->
+                <StackPanel Orientation="Vertical" Grid.Column="2" HorizontalAlignment="Right">
+                    <TextBlock Text="Get in Touch!" FontWeight="Bold" FontSize="16" Margin="0,0,0,5"/>
+                    <TextBlock Text="Email: purikura.id@gmail.com" FontSize="14"/>
+                    <TextBlock Text="Phone: +62 852 8250 8747" FontSize="14"/>
+                </StackPanel>
+            </Grid>
         </Border>
     </Grid>
 </UserControl>

@@ -19,6 +19,8 @@ namespace MiddleBooth.ViewModels
         public ICommand SaveSettingsCommand { get; }
         public ICommand BackCommand { get; }
         public ICommand BrowseDSLRBoothPathCommand { get; }
+        public ICommand BrowseProductImageCommand { get; }
+        public ICommand BrowseMainBackgroundImageCommand { get; }
 
         private string _dslrBoothPath = string.Empty;
         public string DSLRBoothPath
@@ -222,7 +224,31 @@ namespace MiddleBooth.ViewModels
             get => _machineId;
             private set => SetProperty(ref _machineId, value);
         }
+        private string _productImagePath = string.Empty;
+        public string ProductImagePath
+        {
+            get => _productImagePath;
+            set
+            {
+                if (SetProperty(ref _productImagePath, value))
+                {
+                    _settingsService.SetProductImagePath(value);
+                }
+            }
+        }
 
+        private string _mainBackgroundImagePath = string.Empty;
+        public string MainBackgroundImagePath
+        {
+            get => _mainBackgroundImagePath;
+            set
+            {
+                if (SetProperty(ref _mainBackgroundImagePath, value))
+                {
+                    _settingsService.SetMainBackgroundImagePath(value);
+                }
+            }
+        }
         public SettingsViewModel(ISettingsService settingsService, INavigationService navigationService)
         {
             _settingsService = settingsService;
@@ -243,13 +269,16 @@ namespace MiddleBooth.ViewModels
             MqttPort = _settingsService.GetMqttPort();
             MqttUsername = _settingsService.GetMqttUsername();
             MqttPassword = _settingsService.GetMqttPassword();
-
+            ProductImagePath = _settingsService.GetProductImagePath();
+            MainBackgroundImagePath = _settingsService.GetMainBackgroundImagePath();
             MachineId = GetOrCreateMachineId();
 
             // Commands
             SaveSettingsCommand = new RelayCommand(SaveSettings);
             BackCommand = new RelayCommand(_ => NavigateBack());
             BrowseDSLRBoothPathCommand = new RelayCommand(_ => BrowseDSLRBoothPath());
+            BrowseProductImageCommand = new RelayCommand(_ => BrowseProductImage());
+            BrowseMainBackgroundImageCommand = new RelayCommand(_ => BrowseMainBackgroundImage());
         }
 
         private void BrowseDSLRBoothPath()
@@ -265,7 +294,33 @@ namespace MiddleBooth.ViewModels
                 DSLRBoothPath = openFileDialog.FileName;
             }
         }
+        private void BrowseProductImage()
+        {
+            var openFileDialog = new OpenFileDialog
+            {
+                Filter = "Image files (*.png;*.jpeg;*.jpg)|*.png;*.jpeg;*.jpg|All files (*.*)|*.*",
+                Title = "Select Product Image"
+            };
 
+            if (openFileDialog.ShowDialog() == true)
+            {
+                ProductImagePath = openFileDialog.FileName;
+            }
+        }
+
+        private void BrowseMainBackgroundImage()
+        {
+            var openFileDialog = new OpenFileDialog
+            {
+                Filter = "Image files (*.png;*.jpeg;*.jpg)|*.png;*.jpeg;*.jpg|All files (*.*)|*.*",
+                Title = "Select Main Background Image"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                MainBackgroundImagePath = openFileDialog.FileName;
+            }
+        }
         private void SaveSettings(object? parameter)
         {
             // Save settings
@@ -283,6 +338,8 @@ namespace MiddleBooth.ViewModels
             _settingsService.SetMqttPort(MqttPort);
             _settingsService.SetMqttUsername(MqttUsername);
             _settingsService.SetMqttPassword(MqttPassword);
+            _settingsService.SetProductImagePath(ProductImagePath);
+            _settingsService.SetMainBackgroundImagePath(MainBackgroundImagePath);
 
             // Show notification
             NotificationMessage = "Pengaturan berhasil disimpan!";

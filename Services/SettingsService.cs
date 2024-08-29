@@ -172,6 +172,24 @@ namespace MiddleBooth.Services
         {
             UpdateSetting("Activated", activated.ToString());
         }
+        public string GetProductImagePath()
+        {
+            return ConfigurationManager.AppSettings["ProductImagePath"] ?? string.Empty;
+        }
+
+        public void SetProductImagePath(string path)
+        {
+            UpdateSetting("ProductImagePath", path);
+        }
+
+        public string GetMainBackgroundImagePath()
+        {
+            return ConfigurationManager.AppSettings["MainBackgroundImagePath"] ?? string.Empty;
+        }
+        public void SetMainBackgroundImagePath(string path)
+        {
+            UpdateSetting("MainBackgroundImagePath", path);
+        }
 
         private static void UpdateSetting(string key, string value)
         {

@@ -1,10 +1,11 @@
 ﻿using MiddleBooth.Services.Interfaces;
 using MiddleBooth.Utilities;
-using System;
 using System.Windows;
 using System.Windows.Input;
-using System.Threading.Tasks;
 using Serilog;
+using System.Windows.Media.Imaging;
+using System.Windows.Media;
+using System.IO;
 
 namespace MiddleBooth.ViewModels
 {
@@ -41,6 +42,28 @@ namespace MiddleBooth.ViewModels
             get => _continueButtonText;
             set => SetProperty(ref _continueButtonText, value);
         }
+        private ImageSource? _mainBackgroundImageSource;
+        public ImageSource? MainBackgroundImageSource
+        {
+            get => _mainBackgroundImageSource;
+            set => SetProperty(ref _mainBackgroundImageSource, value);
+        }
+
+        private void LoadMainBackgroundImage()
+        {
+            string imagePath = _settingsService.GetMainBackgroundImagePath();
+            if (File.Exists(imagePath))
+            {
+                MainBackgroundImageSource = new BitmapImage(new Uri(imagePath, UriKind.Absolute));
+                Log.Information($"Main background image loaded from {imagePath}");
+            }
+            else
+            {
+                Log.Warning($"Main background image not found at {imagePath}");
+                // Optionally, set a default image here
+                // MainBackgroundImageSource = new BitmapImage(new Uri("/Resources/default_background_image.png", UriKind.Relative));
+            }
+        }
 
         public KeypadViewModel KeypadViewModel { get; }
 
@@ -50,6 +73,7 @@ namespace MiddleBooth.ViewModels
             _navigationService = navigationService;
             _dslrBoothService = dslrBoothService;
             _odooService = odooService;
+            LoadMainBackgroundImage();
 
             OpenSettingsCommand = new RelayCommand(_ => ShowKeypad("Settings"));
             ExitCommand = new RelayCommand(_ => ShowKeypad("Exit"));
