@@ -4,7 +4,33 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:local="clr-namespace:MiddleBooth.Views">
 
-    <Grid Background="White">
+    <UserControl.Resources>
+        <Style x:Key="EllipticalButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="238"/>
+            <Setter Property="Height" Value="79"/>
+            <Setter Property="Background" Value="#AB2424"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Rectangle x:Name="background" Fill="{TemplateBinding Background}" RadiusX="39" RadiusY="39"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="background" Property="Fill" Value="#C82828"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="#79A282">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -17,25 +43,26 @@
                    Text="Pembayaran QRIS" 
                    FontSize="36" 
                    FontWeight="Bold" 
-                   Foreground="MediumSeaGreen" 
+                   Foreground="White" 
                    HorizontalAlignment="Center"
                    Margin="0,30,0,20"/>
 
         <!-- Notification Area -->
         <Border Grid.Row="1" 
-                Background="LightGreen" 
+                Background="#F2F0E4" 
                 Visibility="{Binding IsNotificationVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                 Padding="10" 
-                Margin="0,0,0,20">
+                Margin="20,0,20,20">
             <TextBlock Text="{Binding NotificationMessage}" 
                        FontSize="18" 
-                       Foreground="DarkGreen" 
+                       Foreground="#333333" 
                        HorizontalAlignment="Center"/>
         </Border>
 
         <!-- QR Code Area -->
         <Border Grid.Row="2" 
-                BorderBrush="LightGray" 
+                Background="White"
+                BorderBrush="#F2F0E4" 
                 BorderThickness="1" 
                 CornerRadius="10" 
                 Padding="30" 
@@ -44,7 +71,7 @@
                 <TextBlock Text="Scan QRIS untuk Membayar" 
                            FontSize="20" 
                            FontWeight="SemiBold" 
-                           Foreground="DarkSlateGray" 
+                           Foreground="#333333" 
                            HorizontalAlignment="Center"
                            Margin="0,0,0,20"/>
                 <Image Source="{Binding QrCodeImageSource}" 
@@ -61,14 +88,11 @@
         </Border>
 
         <!-- Footer -->
-        <Grid Grid.Row="3" Background="WhiteSmoke">
+        <Border Grid.Row="3" Background="#F2F0E4" Padding="20">
             <Button Content="Kembali" 
                     Command="{Binding BackCommand}" 
-                    Style="{StaticResource LargeButtonStyle}" 
-                    Background="Tomato"
-                    Width="150" 
-                    Height="50" 
-                    Margin="0,20,0,30"/>
-        </Grid>
+                    Style="{StaticResource EllipticalButtonStyle}"
+                    HorizontalAlignment="Center"/>
+        </Border>
     </Grid>
 </UserControl>

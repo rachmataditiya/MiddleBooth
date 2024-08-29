@@ -4,7 +4,33 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:local="clr-namespace:MiddleBooth.Views">
 
-    <Grid Background="White">
+    <UserControl.Resources>
+        <Style x:Key="EllipticalButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="350"/>
+            <Setter Property="Height" Value="120"/>
+            <Setter Property="Background" Value="#AB2424"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Rectangle x:Name="background" Fill="{TemplateBinding Background}" RadiusX="60" RadiusY="60"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="background" Property="Fill" Value="#C82828"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="#79A282">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -12,22 +38,20 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <Border Grid.Row="0" Background="MediumSeaGreen" Padding="20">
-            <TextBlock Text="Pilih Metode Pembayaran" 
-                       FontSize="36" 
-                       FontWeight="Bold" 
-                       Foreground="White" 
-                       HorizontalAlignment="Center"/>
-        </Border>
+        <TextBlock Grid.Row="0" 
+                   Text="Pilih Metode Pembayaran" 
+                   FontSize="36" 
+                   FontWeight="Bold" 
+                   Foreground="White" 
+                   HorizontalAlignment="Center"
+                   Margin="0,30,0,30"/>
 
         <!-- Main Content -->
         <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20">
             <Button Content="Pembayaran QRIS" 
                     Command="{Binding QrisPaymentCommand}" 
-                    Style="{StaticResource LargeButtonStyle}" 
-                    Width="350" Height="120" 
-                    Margin="0,20"
-                    Background="#4CAF50">
+                    Style="{StaticResource EllipticalButtonStyle}" 
+                    Margin="0,20">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -40,10 +64,8 @@
 
             <Button Content="Pembayaran Voucher" 
                     Command="{Binding VoucherPaymentCommand}" 
-                    Style="{StaticResource LargeButtonStyle}" 
-                    Width="350" Height="120" 
-                    Margin="0,20"
-                    Background="#2196F3">
+                    Style="{StaticResource EllipticalButtonStyle}" 
+                    Margin="0,20">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -56,21 +78,18 @@
 
             <Button Content="Kembali" 
                     Command="{Binding BackCommand}" 
-                    Style="{StaticResource LargeButtonStyle}" 
-                    Width="200" Height="60" 
-                    Margin="0,40,0,0"
-                    Background="#FF5722"/>
+                    Style="{StaticResource EllipticalButtonStyle}" 
+                    Width="238" Height="79" 
+                    Margin="0,40,0,0"/>
         </StackPanel>
 
         <!-- Footer -->
         <Border Grid.Row="2" Background="#F2F0E4" Padding="20">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <!-- Placeholder untuk logo pembayaran -->
                 <Image Source="/Resources/qris_logo.png" Width="60" Height="30" Margin="10"/>
                 <Image Source="/Resources/visa_logo.png" Width="60" Height="30" Margin="10"/>
                 <Image Source="/Resources/mastercard_logo.png" Width="60" Height="30" Margin="10"/>
                 <Image Source="/Resources/bank_logo.png" Width="60" Height="30" Margin="10"/>
-                <!-- Tambahkan logo lainnya sesuai kebutuhan -->
             </StackPanel>
         </Border>
     </Grid>
