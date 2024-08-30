@@ -24,6 +24,20 @@ namespace MiddleBooth.ViewModels
         public ICommand BackCommand { get; }
         public ICommand BrowseDSLRBoothPathCommand { get; }
         public ICommand GetMachineInfoCommand { get; }
+        public ICommand ActivateMachineCommand { get; }
+
+        private bool _isMachineActivated;
+        public bool IsMachineActivated
+        {
+            get => _isMachineActivated;
+            set
+            {
+                SetProperty(ref _isMachineActivated, value);
+                OnPropertyChanged(nameof(CanActivateMachine));
+            }
+        }
+
+        public bool CanActivateMachine => !IsMachineActivated;
 
         public string DSLRBoothPath
         {
@@ -231,11 +245,14 @@ namespace MiddleBooth.ViewModels
                 Log.Information($"New Machine ID generated and set: {machineId}");
             }
 
+            IsMachineActivated = _settingsService.MachineActivated();
+
             // Commands
             SaveSettingsCommand = new RelayCommand(SaveSettings);
             BackCommand = new RelayCommand(_ => NavigateBack());
             BrowseDSLRBoothPathCommand = new RelayCommand(_ => BrowseDSLRBoothPath());
             GetMachineInfoCommand = new RelayCommand(async _ => await GetMachineInfo());
+            ActivateMachineCommand = new RelayCommand(async _ => await ActivateMachine(), _ => CanActivateMachine);
 
             Log.Information("SettingsViewModel initialized");
         }
@@ -263,11 +280,6 @@ namespace MiddleBooth.ViewModels
             _settingsService.SetOdooDatabase(OdooDatabase);
             ShowNotification("Pengaturan berhasil disimpan!");
             Log.Information("Settings saved successfully");
-            Task.Delay(3000).ContinueWith(_ =>
-            {
-                IsNotificationVisible = false;
-                NotificationMessage = string.Empty;
-            }, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
         private void NavigateBack()
@@ -326,8 +338,7 @@ namespace MiddleBooth.ViewModels
             {
                 // Remove MIME type header if present
                 string base64Data = base64String;
-                Log.Information($"Received base64 string (first 100 chars): {base64String.Substring(0, Math.Min(100, base64String.Length))}");
-                if (base64String.Contains(","))
+                if (base64String.Contains(',', StringComparison.Ordinal))
                 {
                     base64Data = base64String.Split(',')[1];
                 }
@@ -359,12 +370,12 @@ namespace MiddleBooth.ViewModels
             catch (Exception ex)
             {
                 ShowNotification($"Gagal menyimpan gambar {fileName}: {ex.Message}", isError: true);
-                Log.Error(ex, $"Failed to save image {fileName}. Base64 string: {base64String.Substring(0, Math.Min(100, base64String.Length))}...");
+                Log.Error(ex, $"Failed to save image {fileName}. Base64 string: {base64String[..Math.Min(100, base64String.Length)]}...");
                 return string.Empty;
             }
         }
 
-        private string GetMimeType(byte[] imageBytes)
+        private static string GetMimeType(byte[] imageBytes)
         {
             if (imageBytes.Length >= 2)
             {
@@ -375,16 +386,13 @@ namespace MiddleBooth.ViewModels
             return "application/octet-stream";
         }
 
-        private string GetExtensionFromMimeType(string mimeType)
+        private static string GetExtensionFromMimeType(string mimeType) => mimeType switch
         {
-            switch (mimeType)
-            {
-                case "image/jpeg": return ".jpg";
-                case "image/png": return ".png";
-                case "image/gif": return ".gif";
-                default: return ".bin";
-            }
-        }
+            "image/jpeg" => ".jpg",
+            "image/png" => ".png",
+            "image/gif" => ".gif",
+            _ => ".bin"
+        };
 
         private void ShowNotification(string message, bool isError = false)
         {
@@ -427,7 +435,6 @@ namespace MiddleBooth.ViewModels
             return BitConverter.ToString(hashBytes)[..32].Replace("-", "");
         }
 
-
         private static string GetProcessorId()
         {
             try
@@ -466,6 +473,37 @@ namespace MiddleBooth.ViewModels
                 Log.Error(ex, "Error getting MAC address");
             }
             return string.Empty;
+        }
+
+        private async Task ActivateMachine()
+        {
+            try
+            {
+                string machineId = _settingsService.GetMachineId();
+                var result = await _odooService.ActivateMachine(
+                    machineId,
+                    $"Machine {machineId}",
+                    "MiddleBooth"
+                );
+
+                if (result.success)
+                {
+                    _settingsService.SetMachineActivated(true);
+                    IsMachineActivated = true;
+                    ShowNotification("Machine activated successfully!");
+                    Log.Information("Machine activated successfully");
+                }
+                else
+                {
+                    ShowNotification($"Failed to activate machine: {result.message}", isError: true);
+                    Log.Warning($"Failed to activate machine: {result.message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error activating machine");
+                ShowNotification($"An error occurred while activating the machine: {ex.Message}", isError: true);
+            }
         }
     }
 }

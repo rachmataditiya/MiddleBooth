@@ -39,7 +39,7 @@ namespace MiddleBooth
             _navigationService.NavigationRequested += OnNavigationRequested;
             _navigationService.OverlayRequested += OnOverlayRequested;
 
-            Content = new MainView(_settingsService, _navigationService, _dslrBoothService, _odooService);
+            Content = new MainView(_settingsService, _navigationService, _dslrBoothService);
 
             Loaded += MainWindow_Loaded;
 
@@ -78,7 +78,7 @@ namespace MiddleBooth
                     "PaymentOptionsPage" => new PaymentOptionsPage(new PaymentOptionsPageViewModel(_navigationService,_paymentService, _settingsService)),
                     "QrisPaymentPage" => new QrisPaymentPage(new QrisPaymentPageViewModel(_navigationService, _paymentService, _odooService, _dslrBoothService, _webServerService, _settingsService)),
                     "VoucherPaymentPage" => new VoucherPaymentPage(new VoucherPaymentPageViewModel(_navigationService, _paymentService, _odooService, _dslrBoothService, _webServerService, _settingsService)),
-                    _ => new MainView(_settingsService, _navigationService, _dslrBoothService, _odooService)
+                    _ => new MainView(_settingsService, _navigationService, _dslrBoothService)
                 };
 
                 if (Content is MainView mainView && mainView.DataContext is MainViewModel viewModel)

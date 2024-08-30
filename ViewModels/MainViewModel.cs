@@ -14,8 +14,6 @@ namespace MiddleBooth.ViewModels
         private readonly ISettingsService _settingsService;
         private readonly INavigationService _navigationService;
         private readonly IDSLRBoothService _dslrBoothService;
-        private readonly IOdooService _odooService;
-
         public ICommand OpenSettingsCommand { get; }
         public ICommand ExitCommand { get; }
         public ICommand ContinueOrActivateCommand { get; }
@@ -66,17 +64,16 @@ namespace MiddleBooth.ViewModels
 
         public KeypadViewModel KeypadViewModel { get; }
 
-        public MainViewModel(ISettingsService settingsService, INavigationService navigationService, IDSLRBoothService dslrBoothService, IOdooService odooService)
+        public MainViewModel(ISettingsService settingsService, INavigationService navigationService, IDSLRBoothService dslrBoothService)
         {
             _settingsService = settingsService;
             _navigationService = navigationService;
             _dslrBoothService = dslrBoothService;
-            _odooService = odooService;
             LoadMainBackgroundImage();
 
             OpenSettingsCommand = new RelayCommand(_ => ShowKeypad("Settings"));
             ExitCommand = new RelayCommand(_ => ShowKeypad("Exit"));
-            ContinueOrActivateCommand = new RelayCommand(async _ => await ContinueOrActivate());
+            ContinueOrActivateCommand = new RelayCommand(_ => ContinueOrActivate());
 
             KeypadViewModel = new KeypadViewModel();
             KeypadViewModel.PinEntered += OnPinEntered;
@@ -119,7 +116,7 @@ namespace MiddleBooth.ViewModels
             ContinueButtonText = _settingsService.MachineActivated() ? "Continue" : "Activate Machine";
         }
 
-        private async Task ContinueOrActivate()
+        private void ContinueOrActivate()
         {
             if (_settingsService.MachineActivated())
             {
@@ -127,36 +124,7 @@ namespace MiddleBooth.ViewModels
             }
             else
             {
-                await ActivateMachine();
-            }
-        }
-
-        private async Task ActivateMachine()
-        {
-            try
-            {
-                string machineId = _settingsService.GetMachineId();
-                var result = await _odooService.ActivateMachine(
-                    machineId,
-                    $"Machine {machineId}",
-                    "MiddleBooth"
-                );
-
-                if (result.success)
-                {
-                    _settingsService.SetMachineActivated(true);
-                    UpdateContinueButtonText();
-                    MessageBox.Show("Machine activated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                else
-                {
-                    MessageBox.Show($"Failed to activate machine: {result.message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Error activating machine");
-                MessageBox.Show($"An error occurred while activating the machine: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                _navigationService.NavigateTo("SettingsView");
             }
         }
 

@@ -6,10 +6,10 @@ namespace MiddleBooth.Views
 {
     public partial class MainView : UserControl
     {
-        public MainView(ISettingsService settingsService, INavigationService navigationService, IDSLRBoothService dslrBoothService, IOdooService odooService)
+        public MainView(ISettingsService settingsService, INavigationService navigationService, IDSLRBoothService dslrBoothService)
         {
             InitializeComponent();
-            DataContext = new MainViewModel(settingsService, navigationService, dslrBoothService, odooService);
+            DataContext = new MainViewModel(settingsService, navigationService, dslrBoothService);
         }
     }
 }
