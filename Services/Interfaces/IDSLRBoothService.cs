@@ -8,5 +8,6 @@ namespace MiddleBooth.Services.Interfaces
         Task<bool> LaunchDSLRBooth();
         Task SetDSLRBoothVisibility(bool isVisible);
         bool IsDSLRBoothRunning();
+        Task CallStartApi();
     }
 }

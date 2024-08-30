@@ -49,7 +49,16 @@ namespace MiddleBooth.ViewModels
                 Log.Information($"DSLRBooth path updated: {value}");
             }
         }
-
+        public string DSLRBoothPassword
+        {
+            get => _settingsService.GetDSLRBoothPassword();
+            set
+            {
+                _settingsService.SetDSLRBoothPassword(value);
+                OnPropertyChanged();
+                Log.Information($"DSLRBooth password updated: {value}");
+            }
+        }
         public string PaymentGatewayUrl
         {
             get => _settingsService.GetPaymentGatewayUrl();
@@ -278,6 +287,7 @@ namespace MiddleBooth.ViewModels
             _settingsService.SetOdooUsername(OdooUsername);
             _settingsService.SetOdooPassword(OdooPassword);
             _settingsService.SetOdooDatabase(OdooDatabase);
+            _settingsService.SetDSLRBoothPassword(DSLRBoothPassword);
             ShowNotification("Pengaturan berhasil disimpan!");
             Log.Information("Settings saved successfully");
         }

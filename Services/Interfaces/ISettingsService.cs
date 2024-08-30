@@ -6,6 +6,8 @@ namespace MiddleBooth.Services.Interfaces
     {
         string GetDSLRBoothPath();
         void SetDSLRBoothPath(string path);
+        string GetDSLRBoothPassword();
+        void SetDSLRBoothPassword(string password);
         string GetPaymentGatewayUrl();
         void SetPaymentGatewayUrl(string url);
         decimal GetServicePrice();

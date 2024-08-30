@@ -206,6 +206,7 @@ namespace MiddleBooth.ViewModels
                 if (_dslrBoothService.IsDSLRBoothRunning())
                 {
                     await _dslrBoothService.SetDSLRBoothVisibility(true);
+                    await _dslrBoothService.CallStartApi();
                     Log.Information("DSLRBooth set to visible after successful voucher validation");
                 }
                 else
@@ -214,6 +215,7 @@ namespace MiddleBooth.ViewModels
                     if (launched)
                     {
                         await _dslrBoothService.SetDSLRBoothVisibility(true);
+                        await _dslrBoothService.CallStartApi();
                         Log.Information("DSLRBooth launched and set to visible after successful voucher validation");
                     }
                     else

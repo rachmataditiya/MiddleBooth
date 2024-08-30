@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using Serilog;
 using System.Windows.Interop;
 using System.Windows;
+using System.Net.Http;
 
 namespace MiddleBooth.Services
 {
@@ -27,6 +28,7 @@ namespace MiddleBooth.Services
         private const int SW_HIDE = 0;
         private const int SW_SHOW = 5;
         private const int SW_RESTORE = 9;
+        private const int SW_MAXIMIZE = 3;
 
         public DSLRBoothService(ISettingsService settingsService)
         {
@@ -52,13 +54,9 @@ namespace MiddleBooth.Services
             {
                 if (_dslrBoothProcess != null && !_dslrBoothProcess.HasExited)
                 {
-                    Log.Information("Stopping existing DSLRBooth process.");
-                    _dslrBoothProcess.CloseMainWindow();
-                    await Task.Delay(1000);
-                    if (!_dslrBoothProcess.HasExited)
-                    {
-                        _dslrBoothProcess.Kill();
-                    }
+                    Log.Information("DSLRBooth is already running. Bringing it to front and maximizing.");
+                    BringToFront(_dslrBoothProcess.MainWindowHandle);
+                    return true;
                 }
 
                 Log.Information("Launching DSLRBooth from path: {Path}", path);
@@ -71,8 +69,9 @@ namespace MiddleBooth.Services
                     }
                 };
                 _dslrBoothProcess.Start();
-                await Task.Delay(3000);
-                Log.Information("DSLRBooth launched successfully.");
+                await Task.Delay(3000); // Wait for the process to initialize
+                BringToFront(_dslrBoothProcess.MainWindowHandle);
+                Log.Information("DSLRBooth launched successfully and maximized.");
                 return true;
             }
             catch (Exception ex)
@@ -91,7 +90,7 @@ namespace MiddleBooth.Services
                 {
                     if (isVisible)
                     {
-                        BringToFront(dslrBoothProcess.MainWindowHandle, restoreIfMinimized: true);
+                        BringToFront(dslrBoothProcess.MainWindowHandle);
                     }
                 }
                 Application.Current.Dispatcher.Invoke(() =>
@@ -104,6 +103,7 @@ namespace MiddleBooth.Services
                 });
             });
         }
+
         public bool IsDSLRBoothRunning()
         {
             if (_dslrBoothProcess != null && !_dslrBoothProcess.HasExited)
@@ -118,13 +118,28 @@ namespace MiddleBooth.Services
             }
             return false;
         }
-        public static void BringToFront(IntPtr handle, bool restoreIfMinimized = false)
+
+        public static void BringToFront(IntPtr handle)
         {
-            if (restoreIfMinimized)
-            {
-                ShowWindow(handle, SW_RESTORE);
-            }
+            ShowWindow(handle, SW_RESTORE);
+            ShowWindow(handle, SW_MAXIMIZE);
             SetForegroundWindow(handle);
+        }
+
+        public async Task CallStartApi()
+        {
+            string _dslrBoothPassword = _settingsService.GetDSLRBoothPassword();
+            try
+            {
+                using var client = new HttpClient();
+                var response = await client.GetAsync($"http://localhost:1500/api/start?mode=print&password={_dslrBoothPassword}");
+                response.EnsureSuccessStatusCode();
+                Log.Information("Successfully called the start API");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Error calling the start API: {ex.Message}");
+            }
         }
     }
 }

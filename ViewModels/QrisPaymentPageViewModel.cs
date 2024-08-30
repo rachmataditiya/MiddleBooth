@@ -1,11 +1,10 @@
 ﻿using MiddleBooth.Services.Interfaces;
 using MiddleBooth.Utilities;
-using System;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using System.Threading.Tasks;
 using Serilog;
+using System.Net.Http;
 
 namespace MiddleBooth.ViewModels
 {
@@ -69,6 +68,8 @@ namespace MiddleBooth.ViewModels
             get => _voucherCode;
             set => SetProperty(ref _voucherCode, value);
         }
+
+        private bool _orderCreated = false;
 
         public QrisPaymentPageViewModel(
             INavigationService navigationService,
@@ -170,7 +171,7 @@ namespace MiddleBooth.ViewModels
                 UpdatePaymentStatus(status);
                 ShowNotification($"Status pembayaran: {PaymentStatus}");
 
-                if (status.ToLower().Trim() == "settlement")
+                if (status.ToLower().Trim() == "settlement" && !_orderCreated)
                 {
                     await CreateBoothOrder();
                     await LaunchDSLRBooth();
@@ -180,36 +181,25 @@ namespace MiddleBooth.ViewModels
 
         private async Task CreateBoothOrder()
         {
+            if (_orderCreated) return;
+
             try
             {
-                Log.Information($"Voucher Code is Available to create order: {VoucherCode}");
-                if (VoucherCode == null)
+                Log.Information($"Attempting to create booth order. Voucher Code: {VoucherCode}");
+                var (success, orderId, message) = VoucherCode == null
+                    ? await _odooService.CreateBoothOrder(_machineId)
+                    : await _odooService.CreateBoothOrder(_machineId, VoucherCode);
+
+                if (success && orderId.HasValue)
                 {
-                    var (success, orderId, message) = await _odooService.CreateBoothOrder(_machineId);
-                    if (success && orderId.HasValue)
-                    {
-                        Log.Information($"Booth order created successfully with ID: {orderId}");
-                        ShowNotification($"Order berhasil dibuat dengan ID: {orderId}");
-                    }
-                    else
-                    {
-                        Log.Warning($"Failed to create booth order: {message}");
-                        ShowNotification($"Gagal membuat order: {message}");
-                    }
+                    Log.Information($"Booth order created successfully with ID: {orderId}");
+                    ShowNotification($"Order berhasil dibuat dengan ID: {orderId}");
+                    _orderCreated = true;
                 }
                 else
                 {
-                    var (success, orderId, message) = await _odooService.CreateBoothOrder(_machineId, VoucherCode);
-                    if (success && orderId.HasValue)
-                    {
-                        Log.Information($"Booth order created successfully with ID: {orderId}");
-                        ShowNotification($"Order berhasil dibuat dengan ID: {orderId}");
-                    }
-                    else
-                    {
-                        Log.Warning($"Failed to create booth order: {message}");
-                        ShowNotification($"Gagal membuat order: {message}");
-                    }
+                    Log.Warning($"Failed to create booth order: {message}");
+                    ShowNotification($"Gagal membuat order: {message}");
                 }
             }
             catch (Exception ex)
@@ -226,6 +216,7 @@ namespace MiddleBooth.ViewModels
                 if (_dslrBoothService.IsDSLRBoothRunning())
                 {
                     await _dslrBoothService.SetDSLRBoothVisibility(true);
+                    await _dslrBoothService.CallStartApi();
                     Log.Information("DSLRBooth set to visible after successful payment");
                 }
                 else
@@ -234,6 +225,7 @@ namespace MiddleBooth.ViewModels
                     if (launched)
                     {
                         await _dslrBoothService.SetDSLRBoothVisibility(true);
+                        await _dslrBoothService.CallStartApi();
                         Log.Information("DSLRBooth launched and set to visible after successful payment");
                     }
                     else
@@ -317,6 +309,7 @@ namespace MiddleBooth.ViewModels
         {
             if (disposing)
             {
+                Log.Information("QrisPaymentPageViewModel is being disposed.");
                 _paymentService.OnPaymentNotificationReceived -= HandlePaymentNotification;
                 _webServerService.TriggerReceived -= OnTriggerReceived;
             }

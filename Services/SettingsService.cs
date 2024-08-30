@@ -15,7 +15,14 @@ namespace MiddleBooth.Services
         {
             UpdateSetting("DSLRBoothPath", path);
         }
-
+        public string GetDSLRBoothPassword()
+        {
+            return ConfigurationManager.AppSettings["DSLRBoothPassword"] ?? string.Empty;
+        }
+        public void SetDSLRBoothPassword(string password)
+        {
+            UpdateSetting("DSLRBoothPassword", password);
+        }
         public string GetPaymentGatewayUrl()
         {
             return ConfigurationManager.AppSettings["PaymentGatewayUrl"] ?? string.Empty;

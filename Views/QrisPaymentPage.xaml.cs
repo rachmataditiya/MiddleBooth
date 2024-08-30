@@ -10,5 +10,13 @@ namespace MiddleBooth.Views
             InitializeComponent();
             DataContext = viewModel;
         }
+
+        private void UserControl_Unloaded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (DataContext is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
     }
 }
