@@ -26,11 +26,11 @@ namespace MiddleBooth.Services
             if (_isListening) return;
 
             _listener = new HttpListener();
-            _listener.Prefixes.Add("http://+:8080/");
+            _listener.Prefixes.Add("http://localhost:8080/");
             _listener.Start();
             _isListening = true;
 
-            Log.Information("Web server started on http://+:8080/");
+            Log.Information("Web server started on http://localhost:8080/");
 
             while (_isListening)
             {

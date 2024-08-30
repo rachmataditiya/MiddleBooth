@@ -77,6 +77,7 @@ namespace MiddleBooth.ViewModels
 
             KeypadViewModel = new KeypadViewModel();
             KeypadViewModel.PinEntered += OnPinEntered;
+            KeypadViewModel.Cancelled += OnKeypadCancelled;
             Log.Information("MainViewModel initialized. TriggerReceived event handler attached.");
 
             _ = InitializeView();
@@ -185,12 +186,17 @@ namespace MiddleBooth.ViewModels
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
+        private void OnKeypadCancelled()
+        {
+            Log.Information("Keypad cancelled");
+            IsKeypadVisible = false;
+        }
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
             {
                 KeypadViewModel.PinEntered -= OnPinEntered;
+                KeypadViewModel.Cancelled -= OnKeypadCancelled;
             }
         }
     }

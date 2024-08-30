@@ -28,13 +28,39 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- New style for the Cancel button -->
+        <Style x:Key="CancelButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="100"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Background" Value="#AB2424"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" CornerRadius="20" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#8F2020"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
-    <Border Background="White" Width="370" Height="580" CornerRadius="58.5" BorderBrush="Black" BorderThickness="3">
+    <Border Background="White" Width="370" Height="630" CornerRadius="58.5" BorderBrush="Black" BorderThickness="3">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- TextBox for Entered PIN -->
@@ -74,6 +100,13 @@
                 <Button Content="0" Command="{Binding NumberCommand}" CommandParameter="0" Style="{StaticResource KeypadButtonStyle}" Background="#6E6E6E" Grid.Row="3" Grid.Column="1"/>
                 <Button Content="✓" Command="{Binding SubmitCommand}" Style="{StaticResource KeypadButtonStyle}" Background="#79A282" Grid.Row="3" Grid.Column="2"/>
             </Grid>
+
+            <!-- New Cancel button -->
+            <Button Grid.Row="2" Content="Cancel" 
+                    Command="{Binding CancelCommand}" 
+                    Style="{StaticResource CancelButtonStyle}"
+                    HorizontalAlignment="Center"
+                    Margin="0,0,0,20"/>
         </Grid>
     </Border>
 </UserControl>

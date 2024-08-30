@@ -28,7 +28,7 @@
             </Setter>
         </Style>
 
-        <!-- Large Button Style (Updated) -->
+        <!-- Large Button Style -->
         <Style x:Key="LargeButtonStyle" TargetType="Button">
             <Setter Property="Width" Value="238"/>
             <Setter Property="Height" Value="79"/>
@@ -58,11 +58,10 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Background Image (Center) -->
-        <Image Source="{Binding MainBackgroundImageSource}" Stretch="UniformToFill" Grid.RowSpan="4"/>
+        <Image Source="{Binding MainBackgroundImageSource}" Stretch="UniformToFill" Grid.RowSpan="3"/>
 
         <!-- Top Bar -->
         <Grid Grid.Row="0">
@@ -87,16 +86,18 @@
             </Button>
         </Grid>
 
-        <!-- Continue Button (Moved down) -->
-        <Grid Grid.Row="2" HorizontalAlignment="Center" Margin="0,0,0,20">
-            <Button Content="{Binding ContinueButtonText}" 
-                    Command="{Binding ContinueOrActivateCommand}" 
-                    Style="{StaticResource LargeButtonStyle}"
-                    Background="#AB2424"/>
-        </Grid>
+        <!-- Continue Button -->
+        <Button Content="{Binding ContinueButtonText}" 
+                Command="{Binding ContinueOrActivateCommand}" 
+                Style="{StaticResource LargeButtonStyle}"
+                Background="#AB2424"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                Grid.Row="1"
+                Margin="0,0,0,20"/>
 
         <!-- Footer -->
-        <Border Grid.Row="3" Background="#F2F0E4" Padding="20">
+        <Border Grid.Row="2" Background="#F2F0E4" Padding="20" HorizontalAlignment="Stretch">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -106,7 +107,7 @@
 
                 <Image Source="/Resources/purikura.png" Height="60" Grid.Column="0" Margin="0,0,20,0"/>
 
-                <TextBlock Text="Powered by Middle Booth" 
+                <TextBlock Text="Powered by MiddleBooth" 
                            VerticalAlignment="Center" 
                            HorizontalAlignment="Center"
                            Grid.Column="1"
@@ -122,7 +123,7 @@
         </Border>
 
         <!-- Keypad Overlay -->
-        <Grid Grid.RowSpan="4" Visibility="{Binding IsKeypadVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+        <Grid Grid.RowSpan="3" Visibility="{Binding IsKeypadVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
             <Rectangle Fill="Black" Opacity="0.7"/>
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                 <TextBlock Text="{Binding KeypadPurpose}" 

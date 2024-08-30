@@ -17,14 +17,17 @@ namespace MiddleBooth.ViewModels
         public ICommand NumberCommand { get; }
         public ICommand ClearCommand { get; }
         public ICommand SubmitCommand { get; }
+        public ICommand CancelCommand { get; }
 
         public event Action<string>? PinEntered;
+        public event Action? Cancelled;
 
         public KeypadViewModel()
         {
             NumberCommand = new RelayCommand<string>(AddNumber);
             ClearCommand = new RelayCommand(_ => ClearPin());
             SubmitCommand = new RelayCommand(_ => SubmitPin());
+            CancelCommand = new RelayCommand(_ => Cancel());
         }
 
         private void AddNumber(string? number)
@@ -47,6 +50,11 @@ namespace MiddleBooth.ViewModels
                 PinEntered?.Invoke(EnteredPin);
                 EnteredPin = string.Empty;
             }
+        }
+        private void Cancel()
+        {
+            EnteredPin = string.Empty;
+            Cancelled?.Invoke();
         }
     }
 }
