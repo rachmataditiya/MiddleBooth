@@ -26,11 +26,11 @@ namespace MiddleBooth.Services
             if (_isListening) return;
 
             _listener = new HttpListener();
-            _listener.Prefixes.Add("http://localhost:8080/");
+            _listener.Prefixes.Add("http://+:8080/");
             _listener.Start();
             _isListening = true;
 
-            Log.Information("Web server started on http://localhost:8080/");
+            Log.Information("Web server started on http://+:8080/");
 
             while (_isListening)
             {
@@ -72,7 +72,7 @@ namespace MiddleBooth.Services
                     Param4 = param4
                 };
 
-                Log.Information($"DSLRBooth event received: {eventType}, Param1: {param1}, Param2: {param2}, Param3: {param3}, Param4: {param4}");
+                //Log.Information($"DSLRBooth event received: {eventType}, Param1: {param1}, Param2: {param2}, Param3: {param3}, Param4: {param4}");
                 TriggerReceived?.Invoke(this, dslrBoothEvent);
             }
             else if (context.Request.HttpMethod == "POST" && context.Request.Url?.PathAndQuery == "/payment")
