@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\background.png" />
     <None Remove="Resources\purikura.png" />
     <None Remove="Resources\purikura_logo.png" />
   </ItemGroup>
@@ -32,6 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\background.png" />
     <Resource Include="Resources\purikura.png" />
   </ItemGroup>
 

@@ -20,7 +20,7 @@ namespace MiddleBooth.Services.Interfaces
             float longitude = 0);
 
         Task<VoucherDetails> CheckVoucher(string voucherCode, string clientMachineId);
-
+        Task<MachineInfo> GetMachineInfo(string clientMachineId);
         Task<(bool success, int? orderId, string message)> CreateBoothOrder(string clientMachineId, string? voucherCode = null);
     }
 
@@ -33,5 +33,26 @@ namespace MiddleBooth.Services.Interfaces
         public bool IsValid { get; set; }
         public DateTime? ExpiryDate { get; set; }
         public string Message { get; set; } = string.Empty;
+    }
+
+    public class MachineInfo
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public string? Name { get; set; }
+        public string? ClientMachineId { get; set; }
+        public string? ApplicationPin { get; set; }
+        public string? MidtransServerKey { get; set; }
+        public bool IsProduction { get; set; }
+        public float? Latitude { get; set; }
+        public float? Longitude { get; set; }
+        public float DefaultBoothPrice { get; set; }
+        public string? PaymentGatewayUrl { get; set; }
+        public string? MqttHost { get; set; }
+        public int MqttPort { get; set; }
+        public string? MqttUsername { get; set; }
+        public string? MqttPassword { get; set; }
+        public string? ProductImage { get; set; }
+        public string? MainBackgroundImage { get; set; }
     }
 }

@@ -94,7 +94,6 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- Left Column -->
@@ -116,131 +115,83 @@
                                         Width="60" 
                                         Height="30"/>
                             </Grid>
-
-                            <TextBlock Text="PIN Aplikasi" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
-                            <PasswordBox PasswordChanged="PasswordBox_PasswordChanged"
-                                         FontSize="12" 
-                                         Padding="5"/>
                         </StackPanel>
                     </GroupBox>
 
-                    <GroupBox Header="Pembayaran" Margin="0,0,0,20" Foreground="White">
+                    <GroupBox Header="Informasi Mesin" Margin="0,0,0,20" Foreground="White">
                         <StackPanel>
+                            <TextBlock Text="PIN Aplikasi" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
+                            <TextBlock Text="{Binding ApplicationPin}" FontSize="12" Margin="0,0,0,10" Foreground="LightGray"/>
+
                             <TextBlock Text="Payment Gateway URL" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
-                            <TextBox Text="{Binding PaymentGatewayUrl}" 
-                                     FontSize="12" 
-                                     Padding="5"/>
+                            <TextBlock Text="{Binding PaymentGatewayUrl}" FontSize="12" Margin="0,0,0,10" Foreground="LightGray"/>
 
                             <TextBlock Text="Harga Layanan" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
-                            <TextBox Text="{Binding ServicePrice}" 
-                                     FontSize="12" 
-                                     Padding="5"/>
+                            <TextBlock Text="{Binding ServicePrice}" FontSize="12" Margin="0,0,0,10" Foreground="LightGray"/>
+
+                            <TextBlock Text="Mode Produksi" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
+                            <TextBlock Text="{Binding IsProduction}" FontSize="12" Margin="0,0,0,10" Foreground="LightGray"/>
                         </StackPanel>
                     </GroupBox>
 
-                    <GroupBox Header="Gambar" Margin="0,0,0,20" Foreground="White">
-                        <StackPanel>
-                            <TextBlock Text="Product Image Path" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBox Grid.Column="0" Text="{Binding ProductImage}" 
-                                         FontSize="12" 
-                                         Padding="5" 
-                                         Margin="0,0,10,0"/>
-                                <Button Grid.Column="1" Content="Pilih" 
-                                        Command="{Binding BrowseProductImageCommand}" 
-                                        Width="60" 
-                                        Height="30"/>
-                            </Grid>
-
-                            <TextBlock Text="Main Background Image Path" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBox Grid.Column="0" Text="{Binding MainBackgroundImage}" 
-                                         FontSize="12" 
-                                         Padding="5" 
-                                         Margin="0,0,10,0"/>
-                                <Button Grid.Column="1" Content="Pilih" 
-                                        Command="{Binding BrowseMainBackgroundImageCommand}" 
-                                        Width="60" 
-                                        Height="30"/>
-                            </Grid>
-                        </StackPanel>
-                    </GroupBox>
-                </StackPanel>
-
-                <!-- Middle Column -->
-                <StackPanel Grid.Column="1" Margin="10">
                     <GroupBox Header="Midtrans" Margin="0,0,0,20" Foreground="White">
                         <StackPanel>
                             <TextBlock Text="Midtrans Server Key" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
-                            <TextBox Text="{Binding MidtransServerKey}" 
-                                     FontSize="12" 
-                                     Padding="5"/>
-
-                            <CheckBox Content="Mode Produksi" 
-                                      IsChecked="{Binding IsProduction}" 
-                                      FontSize="14" 
-                                      Margin="0,10,0,0"
-                                      Foreground="White"/>
-                        </StackPanel>
-                    </GroupBox>
-
-                    <GroupBox Header="MQTT" Margin="0,0,0,20" Foreground="White">
-                        <StackPanel>
-                            <TextBlock Text="MQTT Host" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
-                            <TextBox Text="{Binding MqttHost}" 
-                                     FontSize="12" 
-                                     Padding="5"/>
-
-                            <TextBlock Text="MQTT Port" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
-                            <TextBox Text="{Binding MqttPort}" 
-                                     FontSize="12" 
-                                     Padding="5"/>
-
-                            <TextBlock Text="MQTT Username" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
-                            <TextBox Text="{Binding MqttUsername}" 
-                                     FontSize="12" 
-                                     Padding="5"/>
-
-                            <TextBlock Text="MQTT Password" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
-                            <PasswordBox x:Name="MqttPasswordBox"
-                                         FontSize="12" 
-                                         Padding="5"
-                                         PasswordChanged="MqttPasswordBox_PasswordChanged"/>
+                            <TextBlock Text="{Binding MidtransServerKey}" FontSize="12" Margin="0,0,0,10" Foreground="LightGray"/>
                         </StackPanel>
                     </GroupBox>
                 </StackPanel>
 
                 <!-- Right Column -->
-                <StackPanel Grid.Column="2" Margin="10">
+                <StackPanel Grid.Column="1" Margin="10">
+                    <GroupBox Header="MQTT" Margin="0,0,0,20" Foreground="White">
+                        <StackPanel>
+                            <TextBlock Text="MQTT Host" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
+                            <TextBlock Text="{Binding MqttHost}" FontSize="12" Margin="0,0,0,10" Foreground="LightGray"/>
+
+                            <TextBlock Text="MQTT Port" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
+                            <TextBlock Text="{Binding MqttPort}" FontSize="12" Margin="0,0,0,10" Foreground="LightGray"/>
+
+                            <TextBlock Text="MQTT Username" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
+                            <TextBlock Text="{Binding MqttUsername}" FontSize="12" Margin="0,0,0,10" Foreground="LightGray"/>
+
+                            <TextBlock Text="MQTT Password" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
+                            <TextBlock Text="********" FontSize="12" Margin="0,0,0,10" Foreground="LightGray"/>
+                        </StackPanel>
+                    </GroupBox>
+
                     <GroupBox Header="Odoo" Margin="0,0,0,20" Foreground="White">
                         <StackPanel>
                             <TextBlock Text="Odoo Server" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
-                            <TextBox Text="{Binding OdooServer}" 
-                                     FontSize="12" 
-                                     Padding="5"/>
+                            <TextBox Text="{Binding OdooServer}" FontSize="12" Padding="5"/>
 
                             <TextBlock Text="Odoo Username" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
-                            <TextBox Text="{Binding OdooUsername}" 
-                                     FontSize="12" 
-                                     Padding="5"/>
+                            <TextBox Text="{Binding OdooUsername}" FontSize="12" Padding="5"/>
 
                             <TextBlock Text="Odoo Password" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
-                            <PasswordBox PasswordChanged="OdooPasswordBox_PasswordChanged"
-                                         FontSize="12" 
-                                         Padding="5"/>
+                            <PasswordBox PasswordChanged="OdooPasswordBox_PasswordChanged" FontSize="12" Padding="5"/>
 
                             <TextBlock Text="Odoo Database" FontSize="14" Margin="0,10,0,5" Foreground="White"/>
-                            <TextBox Text="{Binding OdooDatabase}" 
-                                     FontSize="12" 
-                                     Padding="5"/>
+                            <TextBox Text="{Binding OdooDatabase}" FontSize="12" Padding="5"/>
+
+                            <Button Content="Get Machine Info" 
+                                    Command="{Binding GetMachineInfoCommand}"
+                                    Background="#4CAF50"
+                                    Foreground="White"
+                                    FontSize="14"
+                                    Padding="10,5"
+                                    Margin="0,20,0,0"
+                                    HorizontalAlignment="Center">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#45a049"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
                         </StackPanel>
                     </GroupBox>
                 </StackPanel>

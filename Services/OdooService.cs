@@ -42,7 +42,7 @@ namespace MiddleBooth.Services
                 var machineInfo = new MachineInfo
                 {
                     Success = result["success"]?.Value<bool>() ?? false,
-                    Message = result["message"]?.Value<string>() ?? "",
+                    Message = result["message"]?.Value<string>(),
                     Name = result["name"]?.Value<string>(),
                     ClientMachineId = result["client_machine_id"]?.Value<string>(),
                     ApplicationPin = result["application_pin"]?.Value<string>(),
@@ -50,7 +50,12 @@ namespace MiddleBooth.Services
                     IsProduction = result["is_production"]?.Value<bool>() ?? false,
                     Latitude = result["latitude"]?.Value<float>(),
                     Longitude = result["longitude"]?.Value<float>(),
-                    Price = result["price"]?.Value<float>() ?? 0.0f,
+                    DefaultBoothPrice = result["default_booth_price"]?.Value<float>() ?? 0.0f,
+                    PaymentGatewayUrl = result["payment_gateway_url"]?.Value<string>(),
+                    MqttHost = result["mqtt_host"]?.Value<string>(),
+                    MqttPort = result["mqtt_port"]?.Value<int>() ?? 0,
+                    MqttUsername = result["mqtt_username"]?.Value<string>(),
+                    MqttPassword = result["mqtt_password"]?.Value<string>(),
                     ProductImage = result["product_image"]?.Value<string>(),
                     MainBackgroundImage = result["main_background_image"]?.Value<string>()
                 };
@@ -322,21 +327,6 @@ namespace MiddleBooth.Services
                 Log.Error(ex, $"Error sending request to Odoo server: {url}");
                 throw;
             }
-        }
-        public class MachineInfo
-        {
-            public bool Success { get; set; }
-            public string? Message { get; set; }
-            public string? Name { get; set; }
-            public string? ClientMachineId { get; set; }
-            public string? ApplicationPin { get; set; }
-            public string? MidtransServerKey { get; set; }
-            public bool IsProduction { get; set; }
-            public float? Latitude { get; set; }
-            public float? Longitude { get; set; }
-            public float Price { get; set; }
-            public string? ProductImage { get; set; }
-            public string? MainBackgroundImage { get; set; }
         }
     }
 }

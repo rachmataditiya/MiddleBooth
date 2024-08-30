@@ -8,6 +8,9 @@ using System.Management;
 using System.Net.NetworkInformation;
 using System.Security.Cryptography;
 using System.Text;
+using System.Windows;
+using System.IO;
+using Serilog;
 
 namespace MiddleBooth.ViewModels
 {
@@ -15,192 +18,186 @@ namespace MiddleBooth.ViewModels
     {
         private readonly ISettingsService _settingsService;
         private readonly INavigationService _navigationService;
+        private readonly IOdooService _odooService;
 
         public ICommand SaveSettingsCommand { get; }
         public ICommand BackCommand { get; }
         public ICommand BrowseDSLRBoothPathCommand { get; }
-        public ICommand BrowseProductImageCommand { get; }
-        public ICommand BrowseMainBackgroundImageCommand { get; }
+        public ICommand GetMachineInfoCommand { get; }
 
-        private string _dslrBoothPath = string.Empty;
         public string DSLRBoothPath
         {
-            get => _dslrBoothPath;
+            get => _settingsService.GetDSLRBoothPath();
             set
             {
-                if (SetProperty(ref _dslrBoothPath, value))
-                {
-                    _settingsService.SetDSLRBoothPath(value);
-                }
+                _settingsService.SetDSLRBoothPath(value);
+                OnPropertyChanged();
+                Log.Information($"DSLRBooth path updated: {value}");
             }
         }
 
-        private string _paymentGatewayUrl = string.Empty;
         public string PaymentGatewayUrl
         {
-            get => _paymentGatewayUrl;
+            get => _settingsService.GetPaymentGatewayUrl();
             set
             {
-                if (SetProperty(ref _paymentGatewayUrl, value))
-                {
-                    _settingsService.SetPaymentGatewayUrl(value);
-                }
+                _settingsService.SetPaymentGatewayUrl(value);
+                OnPropertyChanged();
+                Log.Information($"Payment Gateway URL updated: {value}");
             }
         }
 
-        private decimal _servicePrice;
         public decimal ServicePrice
         {
-            get => _servicePrice;
+            get => _settingsService.GetServicePrice();
             set
             {
-                if (SetProperty(ref _servicePrice, value))
-                {
-                    _settingsService.SetServicePrice(value);
-                }
+                _settingsService.SetServicePrice(value);
+                OnPropertyChanged();
+                Log.Information($"Service Price updated: {value}");
             }
         }
 
-        private string _applicationPin = string.Empty;
         public string ApplicationPin
         {
-            get => _applicationPin;
+            get => _settingsService.GetApplicationPin();
             set
             {
-                if (SetProperty(ref _applicationPin, value))
-                {
-                    _settingsService.SetApplicationPin(value);
-                }
+                _settingsService.SetApplicationPin(value);
+                OnPropertyChanged();
+                Log.Information("Application PIN updated");
             }
         }
 
-        private bool _isProduction;
         public bool IsProduction
         {
-            get => _isProduction;
+            get => _settingsService.IsProduction();
             set
             {
-                if (SetProperty(ref _isProduction, value))
-                {
-                    _settingsService.SetProduction(value);
-                }
+                _settingsService.SetProduction(value);
+                OnPropertyChanged();
+                Log.Information($"Production mode set to: {value}");
             }
         }
 
-        private string _midtransServerKey = string.Empty;
         public string MidtransServerKey
         {
-            get => _midtransServerKey;
+            get => _settingsService.GetMidtransServerKey();
             set
             {
-                if (SetProperty(ref _midtransServerKey, value))
-                {
-                    _settingsService.SetMidtransServerKey(value);
-                }
+                _settingsService.SetMidtransServerKey(value);
+                OnPropertyChanged();
+                Log.Information("Midtrans Server Key updated");
             }
         }
 
-        private string _odooServer = string.Empty;
         public string OdooServer
         {
-            get => _odooServer;
+            get => _settingsService.GetOdooServer();
             set
             {
-                if (SetProperty(ref _odooServer, value))
-                {
-                    _settingsService.SetOdooServer(value);
-                }
+                _settingsService.SetOdooServer(value);
+                OnPropertyChanged();
+                Log.Information($"Odoo Server updated: {value}");
             }
         }
 
-        private string _odooUsername = string.Empty;
         public string OdooUsername
         {
-            get => _odooUsername;
+            get => _settingsService.GetOdooUsername();
             set
             {
-                if (SetProperty(ref _odooUsername, value))
-                {
-                    _settingsService.SetOdooUsername(value);
-                }
+                _settingsService.SetOdooUsername(value);
+                OnPropertyChanged();
+                Log.Information($"Odoo Username updated: {value}");
             }
         }
 
-        private string _odooPassword = string.Empty;
         public string OdooPassword
         {
-            get => _odooPassword;
+            get => _settingsService.GetOdooPassword();
             set
             {
-                if (SetProperty(ref _odooPassword, value))
-                {
-                    _settingsService.SetOdooPassword(value);
-                }
+                _settingsService.SetOdooPassword(value);
+                OnPropertyChanged();
+                Log.Information("Odoo Password updated");
             }
         }
 
-        private string _odooDatabase = string.Empty;
         public string OdooDatabase
         {
-            get => _odooDatabase;
+            get => _settingsService.GetOdooDatabase();
             set
             {
-                if (SetProperty(ref _odooDatabase, value))
-                {
-                    _settingsService.SetOdooDatabase(value);
-                }
+                _settingsService.SetOdooDatabase(value);
+                OnPropertyChanged();
+                Log.Information($"Odoo Database updated: {value}");
             }
         }
 
-        private string _mqttHost = string.Empty;
         public string MqttHost
         {
-            get => _mqttHost;
+            get => _settingsService.GetMqttHost();
             set
             {
-                if (SetProperty(ref _mqttHost, value))
-                {
-                    _settingsService.SetMqttHost(value);
-                }
+                _settingsService.SetMqttHost(value);
+                OnPropertyChanged();
+                Log.Information($"MQTT Host updated: {value}");
             }
         }
 
-        private int _mqttPort;
         public int MqttPort
         {
-            get => _mqttPort;
+            get => _settingsService.GetMqttPort();
             set
             {
-                if (SetProperty(ref _mqttPort, value))
-                {
-                    _settingsService.SetMqttPort(value);
-                }
+                _settingsService.SetMqttPort(value);
+                OnPropertyChanged();
+                Log.Information($"MQTT Port updated: {value}");
             }
         }
 
-        private string _mqttUsername = string.Empty;
         public string MqttUsername
         {
-            get => _mqttUsername;
+            get => _settingsService.GetMqttUsername();
             set
             {
-                if (SetProperty(ref _mqttUsername, value))
-                {
-                    _settingsService.SetMqttUsername(value);
-                }
+                _settingsService.SetMqttUsername(value);
+                OnPropertyChanged();
+                Log.Information($"MQTT Username updated: {value}");
             }
         }
 
-        private string _mqttPassword = string.Empty;
         public string MqttPassword
         {
-            get => _mqttPassword;
+            get => _settingsService.GetMqttPassword();
             set
             {
-                if (SetProperty(ref _mqttPassword, value))
-                {
-                    _settingsService.SetMqttPassword(value);
-                }
+                _settingsService.SetMqttPassword(value);
+                OnPropertyChanged();
+                Log.Information("MQTT Password updated");
+            }
+        }
+
+        public string ProductImage
+        {
+            get => _settingsService.GetProductImage();
+            set
+            {
+                _settingsService.SetProductImage(value);
+                OnPropertyChanged();
+                Log.Information($"Product Image path updated: {value}");
+            }
+        }
+
+        public string MainBackgroundImage
+        {
+            get => _settingsService.GetMainBackgroundImage();
+            set
+            {
+                _settingsService.SetMainBackgroundImage(value);
+                OnPropertyChanged();
+                Log.Information($"Main Background Image path updated: {value}");
             }
         }
 
@@ -218,67 +215,29 @@ namespace MiddleBooth.ViewModels
             set => SetProperty(ref _notificationMessage, value);
         }
 
-        private string _machineId = string.Empty;
-        public string MachineId
-        {
-            get => _machineId;
-            private set => SetProperty(ref _machineId, value);
-        }
-        private string _ProductImage = string.Empty;
-        public string ProductImage
-        {
-            get => _ProductImage;
-            set
-            {
-                if (SetProperty(ref _ProductImage, value))
-                {
-                    _settingsService.SetProductImage(value);
-                }
-            }
-        }
+        public string MachineId => _settingsService.GetMachineId();
 
-        private string _MainBackgroundImage = string.Empty;
-        public string MainBackgroundImage
-        {
-            get => _MainBackgroundImage;
-            set
-            {
-                if (SetProperty(ref _MainBackgroundImage, value))
-                {
-                    _settingsService.SetMainBackgroundImage(value);
-                }
-            }
-        }
-        public SettingsViewModel(ISettingsService settingsService, INavigationService navigationService)
+        public SettingsViewModel(ISettingsService settingsService, INavigationService navigationService, IOdooService odooService)
         {
             _settingsService = settingsService;
             _navigationService = navigationService;
+            _odooService = odooService;
 
-            // Load settings
-            DSLRBoothPath = _settingsService.GetDSLRBoothPath();
-            PaymentGatewayUrl = _settingsService.GetPaymentGatewayUrl();
-            ServicePrice = _settingsService.GetServicePrice();
-            ApplicationPin = _settingsService.GetApplicationPin();
-            IsProduction = _settingsService.IsProduction();
-            MidtransServerKey = _settingsService.GetMidtransServerKey();
-            OdooServer = _settingsService.GetOdooServer();
-            OdooUsername = _settingsService.GetOdooUsername();
-            OdooPassword = _settingsService.GetOdooPassword();
-            OdooDatabase = _settingsService.GetOdooDatabase();
-            MqttHost = _settingsService.GetMqttHost();
-            MqttPort = _settingsService.GetMqttPort();
-            MqttUsername = _settingsService.GetMqttUsername();
-            MqttPassword = _settingsService.GetMqttPassword();
-            ProductImage = _settingsService.GetProductImage();
-            MainBackgroundImage = _settingsService.GetMainBackgroundImage();
-            MachineId = GetOrCreateMachineId();
+            // Ensure MachineId is set
+            if (string.IsNullOrEmpty(_settingsService.GetMachineId()))
+            {
+                var machineId = GenerateMachineId();
+                _settingsService.SetMachineId(machineId);
+                Log.Information($"New Machine ID generated and set: {machineId}");
+            }
 
             // Commands
             SaveSettingsCommand = new RelayCommand(SaveSettings);
             BackCommand = new RelayCommand(_ => NavigateBack());
             BrowseDSLRBoothPathCommand = new RelayCommand(_ => BrowseDSLRBoothPath());
-            BrowseProductImageCommand = new RelayCommand(_ => BrowseProductImage());
-            BrowseMainBackgroundImageCommand = new RelayCommand(_ => BrowseMainBackgroundImage());
+            GetMachineInfoCommand = new RelayCommand(async _ => await GetMachineInfo());
+
+            Log.Information("SettingsViewModel initialized");
         }
 
         private void BrowseDSLRBoothPath()
@@ -292,60 +251,18 @@ namespace MiddleBooth.ViewModels
             if (openFileDialog.ShowDialog() == true)
             {
                 DSLRBoothPath = openFileDialog.FileName;
-            }
-        }
-        private void BrowseProductImage()
-        {
-            var openFileDialog = new OpenFileDialog
-            {
-                Filter = "Image files (*.png;*.jpeg;*.jpg)|*.png;*.jpeg;*.jpg|All files (*.*)|*.*",
-                Title = "Select Product Image"
-            };
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                ProductImage = openFileDialog.FileName;
+                Log.Information($"DSLRBooth path set to: {DSLRBoothPath}");
             }
         }
 
-        private void BrowseMainBackgroundImage()
-        {
-            var openFileDialog = new OpenFileDialog
-            {
-                Filter = "Image files (*.png;*.jpeg;*.jpg)|*.png;*.jpeg;*.jpg|All files (*.*)|*.*",
-                Title = "Select Main Background Image"
-            };
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                MainBackgroundImage = openFileDialog.FileName;
-            }
-        }
         private void SaveSettings(object? parameter)
         {
-            // Save settings
-            _settingsService.SetDSLRBoothPath(DSLRBoothPath);
-            _settingsService.SetPaymentGatewayUrl(PaymentGatewayUrl);
-            _settingsService.SetServicePrice(ServicePrice);
-            _settingsService.SetApplicationPin(ApplicationPin);
-            _settingsService.SetProduction(IsProduction);
-            _settingsService.SetMidtransServerKey(MidtransServerKey);
             _settingsService.SetOdooServer(OdooServer);
             _settingsService.SetOdooUsername(OdooUsername);
             _settingsService.SetOdooPassword(OdooPassword);
             _settingsService.SetOdooDatabase(OdooDatabase);
-            _settingsService.SetMqttHost(MqttHost);
-            _settingsService.SetMqttPort(MqttPort);
-            _settingsService.SetMqttUsername(MqttUsername);
-            _settingsService.SetMqttPassword(MqttPassword);
-            _settingsService.SetProductImage(ProductImage);
-            _settingsService.SetMainBackgroundImage(MainBackgroundImage);
-
-            // Show notification
-            NotificationMessage = "Pengaturan berhasil disimpan!";
-            IsNotificationVisible = true;
-
-            // Hide notification after 3 seconds
+            ShowNotification("Pengaturan berhasil disimpan!");
+            Log.Information("Settings saved successfully");
             Task.Delay(3000).ContinueWith(_ =>
             {
                 IsNotificationVisible = false;
@@ -356,36 +273,160 @@ namespace MiddleBooth.ViewModels
         private void NavigateBack()
         {
             _navigationService.NavigateTo("MainView");
+            Log.Information("Navigated back to MainView");
         }
 
-        private string GetOrCreateMachineId()
+        private async Task GetMachineInfo()
         {
-            string savedMachineId = _settingsService.GetMachineId();
-            if (!string.IsNullOrEmpty(savedMachineId))
+            Log.Information("Getting machine info from Odoo");
+            try
             {
-                return savedMachineId;
-            }
+                var machineInfo = await _odooService.GetMachineInfo(MachineId);
 
-            string newMachineId = GenerateMachineId();
-            _settingsService.SetMachineId(newMachineId);
-            return newMachineId;
+                if (machineInfo.Success)
+                {
+                    ApplicationPin = machineInfo.ApplicationPin ?? string.Empty;
+                    MidtransServerKey = machineInfo.MidtransServerKey ?? string.Empty;
+                    IsProduction = machineInfo.IsProduction;
+                    ServicePrice = (decimal)machineInfo.DefaultBoothPrice;
+                    PaymentGatewayUrl = machineInfo.PaymentGatewayUrl ?? string.Empty;
+                    MqttHost = machineInfo.MqttHost ?? string.Empty;
+                    MqttPort = machineInfo.MqttPort;
+                    MqttUsername = machineInfo.MqttUsername ?? string.Empty;
+                    MqttPassword = machineInfo.MqttPassword ?? string.Empty;
+
+                    if (!string.IsNullOrEmpty(machineInfo.ProductImage))
+                    {
+                        ProductImage = SaveBase64Image(machineInfo.ProductImage, "ProductImage.png");
+                    }
+                    if (!string.IsNullOrEmpty(machineInfo.MainBackgroundImage))
+                    {
+                        MainBackgroundImage = SaveBase64Image(machineInfo.MainBackgroundImage, "MainBackgroundImage.png");
+                    }
+
+                    ShowNotification("Informasi mesin berhasil diperbarui!");
+                    Log.Information("Machine info successfully updated from Odoo");
+                }
+                else
+                {
+                    ShowNotification($"Gagal mendapatkan informasi mesin: {machineInfo.Message ?? "Unknown error"}", isError: true);
+                    Log.Warning($"Failed to get machine info: {machineInfo.Message ?? "Unknown error"}");
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowNotification($"Terjadi kesalahan: {ex.Message}", isError: true);
+                Log.Error(ex, "Error occurred while getting machine info");
+            }
+        }
+
+        private string SaveBase64Image(string base64String, string fileName)
+        {
+            try
+            {
+                // Remove MIME type header if present
+                string base64Data = base64String;
+                Log.Information($"Received base64 string (first 100 chars): {base64String.Substring(0, Math.Min(100, base64String.Length))}");
+                if (base64String.Contains(","))
+                {
+                    base64Data = base64String.Split(',')[1];
+                }
+
+                // Ensure the base64 string is valid
+                base64Data = base64Data.Trim();
+                if (base64Data.Length % 4 > 0)
+                {
+                    base64Data = base64Data.PadRight(base64Data.Length + (4 - base64Data.Length % 4), '=');
+                }
+
+                byte[] imageBytes = Convert.FromBase64String(base64Data);
+                string imagePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+
+                // Ensure the file extension is correct
+                string extension = Path.GetExtension(fileName);
+                if (string.IsNullOrEmpty(extension))
+                {
+                    // If no extension, try to determine from the image bytes
+                    string mimeType = GetMimeType(imageBytes);
+                    extension = GetExtensionFromMimeType(mimeType);
+                    imagePath = Path.ChangeExtension(imagePath, extension);
+                }
+
+                File.WriteAllBytes(imagePath, imageBytes);
+                Log.Information($"Image saved successfully: {imagePath}");
+                return imagePath;
+            }
+            catch (Exception ex)
+            {
+                ShowNotification($"Gagal menyimpan gambar {fileName}: {ex.Message}", isError: true);
+                Log.Error(ex, $"Failed to save image {fileName}. Base64 string: {base64String.Substring(0, Math.Min(100, base64String.Length))}...");
+                return string.Empty;
+            }
+        }
+
+        private string GetMimeType(byte[] imageBytes)
+        {
+            if (imageBytes.Length >= 2)
+            {
+                if (imageBytes[0] == 0xFF && imageBytes[1] == 0xD8) return "image/jpeg";
+                if (imageBytes[0] == 0x89 && imageBytes[1] == 0x50) return "image/png";
+                if (imageBytes[0] == 0x47 && imageBytes[1] == 0x49) return "image/gif";
+            }
+            return "application/octet-stream";
+        }
+
+        private string GetExtensionFromMimeType(string mimeType)
+        {
+            switch (mimeType)
+            {
+                case "image/jpeg": return ".jpg";
+                case "image/png": return ".png";
+                case "image/gif": return ".gif";
+                default: return ".bin";
+            }
+        }
+
+        private void ShowNotification(string message, bool isError = false)
+        {
+            NotificationMessage = message;
+            IsNotificationVisible = true;
+
+            // Hide notification after 3 seconds
+            Task.Delay(3000).ContinueWith(_ =>
+            {
+                IsNotificationVisible = false;
+                NotificationMessage = string.Empty;
+            }, TaskScheduler.FromCurrentSynchronizationContext());
+
+            if (isError)
+            {
+                MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Log.Error($"Error notification shown: {message}");
+            }
+            else
+            {
+                Log.Information($"Notification shown: {message}");
+            }
         }
 
         private static string GenerateMachineId()
         {
             string processorId = GetProcessorId();
             string macAddress = GetMacAddress();
-            string combinedInfo = $"{processorId}|{macAddress}";
 
-            if (string.IsNullOrEmpty(combinedInfo))
+            // Jika tidak bisa mendapatkan informasi perangkat keras, gunakan fallback ke data yang lebih konsisten
+            if (string.IsNullOrEmpty(processorId) || string.IsNullOrEmpty(macAddress))
             {
-                // Fallback jika tidak bisa mendapatkan informasi hardware
-                combinedInfo = Guid.NewGuid().ToString();
+                processorId = "FallbackProcessorId";
+                macAddress = "FallbackMacAddress";
+                Log.Warning("Falling back to default IDs due to hardware information retrieval failure");
             }
 
+            string combinedInfo = $"{processorId}|{macAddress}";
             byte[] hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(combinedInfo));
             return BitConverter.ToString(hashBytes)[..32].Replace("-", "");
         }
+
 
         private static string GetProcessorId()
         {
@@ -403,8 +444,7 @@ namespace MiddleBooth.ViewModels
             }
             catch (Exception ex)
             {
-                // Log the exception
-                Console.WriteLine($"Error getting processor ID: {ex.Message}");
+                Log.Error(ex, "Error getting processor ID");
             }
             return string.Empty;
         }
@@ -423,8 +463,7 @@ namespace MiddleBooth.ViewModels
             }
             catch (Exception ex)
             {
-                // Log the exception
-                Console.WriteLine($"Error getting MAC address: {ex.Message}");
+                Log.Error(ex, "Error getting MAC address");
             }
             return string.Empty;
         }
