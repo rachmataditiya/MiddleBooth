@@ -253,7 +253,9 @@ namespace MiddleBooth.ViewModels
             {
                 if (disposing)
                 {
+                    Log.Information("VoucherPaymentPageViewModel is being disposed.");
                     _webServerService.TriggerReceived -= OnTriggerReceived;
+                    // Dispose other resources here
                 }
 
                 _disposed = true;
