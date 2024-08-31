@@ -17,6 +17,7 @@ namespace MiddleBooth.ViewModels
         private readonly IWebServerService _webServerService;
         private readonly ISettingsService _settingsService;
         private readonly string _machineId;
+        private bool _printed = false;
         private bool _disposed;
 
         public ICommand ValidateVoucherCommand { get; }
@@ -236,14 +237,24 @@ namespace MiddleBooth.ViewModels
 
         private async void OnTriggerReceived(object? sender, DSLRBoothEvent e)
         {
-            if (e.EventType == "session_end")
+            if (e.EventType == "printing")
             {
-                Log.Information("DSLRBooth session ended. Navigating to MainView.");
+                _printed = true;
+                Log.Information("Printing event received.");
+            }
+            else if (e.EventType == "session_end" && _printed)
+            {
+                Log.Information("DSLRBooth session ended after printing. Navigating to MainView.");
                 await _dslrBoothService.SetDSLRBoothVisibility(false);
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     _navigationService.NavigateTo("MainView");
                 });
+                _printed = false; // Reset for next session
+            }
+            else if (e.EventType == "session_end" && !_printed)
+            {
+                Log.Information("DSLRBooth session ended without printing. Ignoring.");
             }
         }
 
