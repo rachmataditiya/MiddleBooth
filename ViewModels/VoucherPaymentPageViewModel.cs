@@ -237,7 +237,7 @@ namespace MiddleBooth.ViewModels
 
         private async void OnTriggerReceived(object? sender, DSLRBoothEvent e)
         {
-            if (e.EventType == "printing")
+            if (e.EventType == "processing_start")
             {
                 _printed = true;
                 Log.Information("Printing event received.");
