@@ -8,7 +8,7 @@ namespace MiddleBooth.Services.Interfaces
         Task<string> GenerateQRCode(decimal amount);
         public void ProcessPaymentNotification(string notificationJson);
 
-        event Action<string> OnPaymentNotificationReceived;
+        event Action<string, string> OnPaymentNotificationReceived;
         decimal GetServicePrice();
 
     }

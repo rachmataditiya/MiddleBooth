@@ -24,7 +24,7 @@ namespace MiddleBooth.Services
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
-        public event Action<string> OnPaymentNotificationReceived = delegate { };
+        public event Action<string, string> OnPaymentNotificationReceived = delegate { };
 
         public PaymentService(ISettingsService settingsService)
         {
@@ -135,15 +135,15 @@ namespace MiddleBooth.Services
                 {
                     case "settlement":
                         Log.Information("Payment settled for Order ID: {OrderId}", notification.OrderId);
-                        OnPaymentNotificationReceived?.Invoke("settlement");
+                        OnPaymentNotificationReceived?.Invoke(notification.TransactionId, "settlement");
                         break;
                     case "pending":
                         Log.Information("Payment pending for Order ID: {OrderId}", notification.OrderId);
-                        OnPaymentNotificationReceived?.Invoke("pending");
+                        OnPaymentNotificationReceived?.Invoke(notification.TransactionId, "pending");
                         break;
                     case "expire":
                         Log.Information("Payment expired for Order ID: {OrderId}", notification.OrderId);
-                        OnPaymentNotificationReceived?.Invoke("expire");
+                        OnPaymentNotificationReceived?.Invoke(notification.TransactionId, "expire");
                         break;
                     default:
                         Log.Warning("Unknown transaction status: {TransactionStatus}", notification.TransactionStatus);

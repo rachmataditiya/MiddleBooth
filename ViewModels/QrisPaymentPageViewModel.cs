@@ -162,7 +162,7 @@ namespace MiddleBooth.ViewModels
             }
         }
 
-        private async void HandlePaymentNotification(string status)
+        private async void HandlePaymentNotification(string transaction_id, string status)
         {
             Log.Information($"Payment notification received in ViewModel: {status}");
 
@@ -174,13 +174,13 @@ namespace MiddleBooth.ViewModels
 
                 if (status.ToLower().Trim() == "settlement" && !_orderCreated)
                 {
-                    await CreateBoothOrder();
+                    await CreateBoothOrder(transaction_id);
                     await LaunchDSLRBooth();
                 }
             });
         }
 
-        private async Task CreateBoothOrder()
+        private async Task CreateBoothOrder(string transaction_id)
         {
             if (_orderCreated) return;
 
@@ -188,8 +188,8 @@ namespace MiddleBooth.ViewModels
             {
                 Log.Information($"Attempting to create booth order. Voucher Code: {VoucherCode}");
                 var (success, orderId, message) = VoucherCode == null
-                    ? await _odooService.CreateBoothOrder(_machineId)
-                    : await _odooService.CreateBoothOrder(_machineId, VoucherCode);
+                    ? await _odooService.CreateBoothOrder(_machineId, transaction_id)
+                    : await _odooService.CreateBoothOrder(_machineId, transaction_id, VoucherCode);
 
                 if (success && orderId.HasValue)
                 {
