@@ -178,7 +178,8 @@ namespace MiddleBooth.ViewModels
         {
             try
             {
-                var (success, orderId, message) = await _odooService.CreateBoothOrder(_machineId, VoucherCode);
+                string transactionID = "";
+                var (success, orderId, message) = await _odooService.CreateBoothOrder(_machineId, transactionID, VoucherCode);
                 if (success && orderId.HasValue)
                 {
                     Log.Information($"Booth order created successfully with ID: {orderId}");
