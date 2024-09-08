@@ -78,7 +78,7 @@ namespace MiddleBooth.Services
                 );
 
                 var content = await response.Content.ReadAsStringAsync();
-                Log.Information("Received response: {Content}", content);
+                //Log.Information("Received response: {Content}", content);
 
                 var result = JsonSerializer.Deserialize<MidtransResponse>(content, _jsonSerializerOptions);
 

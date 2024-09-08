@@ -209,7 +209,7 @@ namespace MiddleBooth.ViewModels
                 {
                     await _dslrBoothService.SetDSLRBoothVisibility(true);
                     await _dslrBoothService.CallStartApi();
-                    Log.Information("DSLRBooth set to visible after successful voucher validation");
+                    Log.Information("[DSLRBooth] set to visible after successful voucher validation");
                 }
                 else
                 {
@@ -218,11 +218,11 @@ namespace MiddleBooth.ViewModels
                     {
                         await _dslrBoothService.SetDSLRBoothVisibility(true);
                         await _dslrBoothService.CallStartApi();
-                        Log.Information("DSLRBooth launched and set to visible after successful voucher validation");
+                        Log.Information("[DSLRBooth] launched and set to visible after successful voucher validation");
                     }
                     else
                     {
-                        Log.Warning("Failed to launch DSLRBooth after successful voucher validation");
+                        Log.Warning("[DSLRBooth] Failed to launch DSLRBooth after successful voucher validation");
                         ValidationResult = "Voucher valid, tapi gagal menjalankan DSLRBooth. Silakan cek pengaturan.";
                         ValidationResultColor = "Orange";
                     }
@@ -241,11 +241,11 @@ namespace MiddleBooth.ViewModels
             if (e.EventType == "processing_start")
             {
                 _printed = true;
-                Log.Information("Printing event received.");
+                Log.Information("[DSLRBooth] Printing event received.");
             }
             else if (e.EventType == "session_end" && _printed)
             {
-                Log.Information("DSLRBooth session ended after printing. Navigating to MainView.");
+                Log.Information("[DSLRBooth] session ended after printing. Navigating to MainView.");
                 await _dslrBoothService.SetDSLRBoothVisibility(false);
                 Application.Current.Dispatcher.Invoke(() =>
                 {
@@ -255,7 +255,7 @@ namespace MiddleBooth.ViewModels
             }
             else if (e.EventType == "session_end" && !_printed)
             {
-                Log.Information("DSLRBooth session ended without printing. Ignoring.");
+                Log.Information("[DSLRBooth] session ended without printing. Ignoring.");
             }
         }
 

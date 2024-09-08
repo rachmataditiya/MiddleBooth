@@ -53,7 +53,7 @@ namespace MiddleBooth.Services
 
             string originalHost = context.Request.Url?.Host ?? "unknown";
             string forwardedHost = context.Request.Headers["X-Forwarded-Host"] ?? "not set";
-            Log.Information($"Request received. Original Host: {originalHost}, Forwarded Host: {forwardedHost}");
+            //Log.Information($"Request received. Original Host: {originalHost}, Forwarded Host: {forwardedHost}");
 
             if (context.Request.HttpMethod == "GET" && context.Request.Url?.PathAndQuery.StartsWith("/trigger") == true)
             {
