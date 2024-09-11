@@ -1,4 +1,6 @@
-﻿using MiddleBooth.Services.Interfaces;
+﻿// File: ViewModels/SettingsViewModel.cs
+
+using MiddleBooth.Services.Interfaces;
 using MiddleBooth.Utilities;
 using Microsoft.Win32;
 using System;
@@ -49,6 +51,7 @@ namespace MiddleBooth.ViewModels
                 Log.Information($"DSLRBooth path updated: {value}");
             }
         }
+
         public string DSLRBoothPassword
         {
             get => _settingsService.GetDSLRBoothPassword();
@@ -59,6 +62,7 @@ namespace MiddleBooth.ViewModels
                 Log.Information($"DSLRBooth password updated: {value}");
             }
         }
+
         public string PaymentGatewayUrl
         {
             get => _settingsService.GetPaymentGatewayUrl();
@@ -245,6 +249,13 @@ namespace MiddleBooth.ViewModels
             _settingsService = settingsService;
             _navigationService = navigationService;
             _odooService = odooService;
+            DSLRBoothPassword = _settingsService.GetDSLRBoothPassword();
+            OdooPassword = _settingsService.GetOdooPassword();
+            MqttPassword = _settingsService.GetMqttPassword();
+            ProductImage = _settingsService.GetProductImage();
+            MainBackgroundImage = _settingsService.GetMainBackgroundImage();
+
+            ReloadSettings();
 
             // Ensure MachineId is set
             if (string.IsNullOrEmpty(_settingsService.GetMachineId()))
@@ -283,13 +294,77 @@ namespace MiddleBooth.ViewModels
 
         private void SaveSettings(object? parameter)
         {
+            // Simpan semua pengaturan
+            _settingsService.SetDSLRBoothPath(DSLRBoothPath);
+            if (!string.IsNullOrEmpty(DSLRBoothPassword))
+            {
+                _settingsService.SetDSLRBoothPassword(DSLRBoothPassword);
+            }
+            _settingsService.SetPaymentGatewayUrl(PaymentGatewayUrl);
+            _settingsService.SetServicePrice(ServicePrice);
+            _settingsService.SetApplicationPin(ApplicationPin);
+            _settingsService.SetProduction(IsProduction);
+            _settingsService.SetMidtransServerKey(MidtransServerKey);
             _settingsService.SetOdooServer(OdooServer);
             _settingsService.SetOdooUsername(OdooUsername);
-            _settingsService.SetOdooPassword(OdooPassword);
+            if (!string.IsNullOrEmpty(OdooPassword))
+            {
+                _settingsService.SetOdooPassword(OdooPassword);
+            }
             _settingsService.SetOdooDatabase(OdooDatabase);
-            _settingsService.SetDSLRBoothPassword(DSLRBoothPassword);
+            _settingsService.SetMqttHost(MqttHost);
+            _settingsService.SetMqttPort(MqttPort);
+            _settingsService.SetMqttUsername(MqttUsername);
+            if (!string.IsNullOrEmpty(MqttPassword))
+            {
+                _settingsService.SetMqttPassword(MqttPassword);
+            }
+            if (!string.IsNullOrEmpty(ProductImage))
+            {
+                _settingsService.SetProductImage(ProductImage);
+            }
+            if (!string.IsNullOrEmpty(MainBackgroundImage))
+            {
+                _settingsService.SetMainBackgroundImage(MainBackgroundImage);
+            }
+
+            // Muat ulang semua pengaturan dari database
+            ReloadSettings();
+
             ShowNotification("Pengaturan berhasil disimpan!");
-            Log.Information("Settings saved successfully");
+            Log.Information("Settings saved successfully and reloaded");
+        }
+        private void ReloadSettings()
+        {
+            DSLRBoothPath = _settingsService.GetDSLRBoothPath();
+            // Jangan muat ulang password, biarkan nilai yang diinput user
+            PaymentGatewayUrl = _settingsService.GetPaymentGatewayUrl();
+            ServicePrice = _settingsService.GetServicePrice();
+            ApplicationPin = _settingsService.GetApplicationPin();
+            IsProduction = _settingsService.IsProduction();
+            MidtransServerKey = _settingsService.GetMidtransServerKey();
+            OdooServer = _settingsService.GetOdooServer();
+            OdooUsername = _settingsService.GetOdooUsername();
+            // Jangan muat ulang password, biarkan nilai yang diinput user
+            OdooDatabase = _settingsService.GetOdooDatabase();
+            MqttHost = _settingsService.GetMqttHost();
+            MqttPort = _settingsService.GetMqttPort();
+            MqttUsername = _settingsService.GetMqttUsername();
+            // Jangan muat ulang password, biarkan nilai yang diinput user
+
+            // Hanya muat ulang path gambar jika saat ini kosong
+            if (string.IsNullOrEmpty(ProductImage))
+            {
+                ProductImage = _settingsService.GetProductImage();
+            }
+            if (string.IsNullOrEmpty(MainBackgroundImage))
+            {
+                MainBackgroundImage = _settingsService.GetMainBackgroundImage();
+            }
+
+            IsMachineActivated = _settingsService.MachineActivated();
+
+            OnPropertyChanged(nameof(CanActivateMachine));
         }
 
         private void NavigateBack()
